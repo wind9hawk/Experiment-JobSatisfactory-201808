@@ -49,5 +49,65 @@ for i in range(10):
 
 
 
+
+# 开始构造pyplot的X轴与Y轴
+# 现在的离职人员关系数据为：['CBN1983', 0.0, 8.0, 28.0, 82.0, 120.0, 8.0, 36.0]
+Users_CERT52 = []
+for line in LaidOff_Relationship:
+        Users_CERT52.append(line[0])
+# 如果直接用姓名作为X轴
+#plt.xlabel('Users')
+#plt.ylabel('test')
+#plt.plot(Users_CERT52[:10], [1] * 10, 'ro')
+#plt.show()
+#plt.close()
+# 上述代码说明了pyplot绘图时X轴可以是字符串列表
+# 为了绘图方便，我们先转换为序号
+Users_Index = range(len(Users_CERT52))
+Insider_Index = []
+for insider in Insiders_2:
+    in_index = Users_CERT52.index(insider)
+    Insider_Index.append(in_index)
+    Users_Index.remove(in_index)
+print 'Users_Index is like ', Users_Index[:10], '\n'
+print 'Insider_Index is like ', Insider_Index[:10], '\n'
+
+
+# 分别构造X轴与Y轴数组
+# X轴数组就是Users_Index与Insider_Index
+Users_Y = []
+for ele in Users_Index:
+    Users_Y.append(LaidOff_Relationship[ele][1:])
+Insiders_Y = []
+for ele in Insider_Index:
+    Insiders_Y.append(LaidOff_Relationship[ele][1:])
+print 'Users_Y is like ', Users_Y[:10], '\n'
+print 'Insider_Y is like ', Insiders_Y[:10], '\n'
+
+Users_Y_MinMax = MinMaxScaler().fit_transform(Users_Y)
+Insiders_Y_MinMax = MinMaxScaler().fit_transform(Insiders_Y)
+for i in range(len(Insiders_Y_MinMax)):
+    print Insiders_2[i], Insiders_Y_MinMax[i], '\n'
+
+print 'MinMax finished...\n'
+print 'Users_Y_MinMax is like ', Users_Y_MinMax[:10], '\n'
+print 'Insider_Y_MinMax is like ', Insiders_Y_MinMax[:10], '\n'
+
+print 'Users_CERT52 is ', len(Users_CERT52), '\n'
+print 'Users_Index is ', len(Users_Index), '\t', len(Users_Y_MinMax), '\n'
+print 'Insiders_Index is ', len(Insider_Index), '\t', len(Insiders_Y_MinMax), '\n'
+print '开始绘图...\n'
+for i in range(7):
+    plt.xlabel('Users in CERT5.2')
+    plt.ylabel('LaidOff_Relationship_' + str(i))
+    plt.plot(Users_Index, Users_Y_MinMax[:,i], 'bx', Insider_Index, Insiders_Y_MinMax[:,i], 'r^')
+    plt.show()
+    plt.close()
+    i += 1
+print 'Draw has finished...\n'
+
+
+
+
 sys.exit()
 
