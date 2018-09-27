@@ -9,6 +9,8 @@ import sys
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
 
 print '开始绘制CERT5.2中所有用户离职人员关系图...\n'
 # G:\GitHub\Essay-Experiments\Experiment-JobSatisfactory-201808\r5.2-2
@@ -47,6 +49,7 @@ for i in range(10):
     print LaidOff_Relationship[i], '\n'
 
 
+# 这里引入自动降维后查看自动聚类结果
 
 
 
