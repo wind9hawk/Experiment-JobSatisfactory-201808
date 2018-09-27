@@ -113,9 +113,11 @@ print '将CERT5.2所有用户的离职关系数据写入文件...\n'
 f = open('CERT5.2-Leave-Relationship_Counts.csv','w')
 f_1 = open('CERT5.2-Leave-Relationship.csv', 'w')  # 存储每个用户的关系中离开的用户列表
 f_2 = open('CERT5.2-LaidOff_Relationship.csv', 'w') # 存储每个用户关系中解雇的用户列表
+f_3 = open('CERT5.2-LaidOff-Relationship_Counts.csv', 'w')
 f.write('CERT5.2 Leave Company Relationships Counts for all Users\n')
 f_1.write('CERT5.2 Leave Company Relationships Users for all Users\n')
 f_2.write('CERT5.2 Laid Off Company Relationships Users for all Users\n')
+f_3.write('CERT5.2 Laid Off Company Relationships Counts for all Users\n')
 # [user_id, LaidOff Time, a1,a2,a3,a4,a5]记录用户的ID，离职时间以及数字化的五个层次离职人数
 LaidOff_Users_Relationships = []
 # ['HBW0057', '1 - Executive', '2 - ResearchAndEngineering', '1 - ProjectManagement', '']
@@ -325,9 +327,25 @@ for user in Users_CERT52[:]:
         f_2.write(',')
     f_2.write('\n')
 
+    f_3.write(user[0])
+    f_3.write(',')
+    f_3.write(User_Time)
+    f_3.write(',')
+    f_3.write(str(len(Insider_LaidOff_0)))
+    f_3.write(',')
+    f_3.write(str(len(Insider_LaidOff_1)))
+    f_3.write(',')
+    f_3.write(str(len(Insider_LaidOff_2)))
+    f_3.write(',')
+    f_3.write(str(len(Insider_LaidOff_3)))
+    f_3.write(',')
+    f_3.write(str(len(Insider_LaidOff_4)))
+    f_3.write('\n')
+
 f.close()
 f_1.close()
 f_2.close()
+f_3.close()
 print '所有用户的离职关系分析完毕..\n'
 for i in range(10):
     print LaidOff_Users_Relationships[i], '\n'
