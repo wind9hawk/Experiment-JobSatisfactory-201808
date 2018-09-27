@@ -4,11 +4,31 @@
 import os
 import sys
 
+
+##
+print '......<<<<<<', '解雇人员不同于离开单位的人员>>>>>>......\n\n'
+## 添加一个可以自动获取场景1-2-3涉及离开单位人员的列表，从而从起初的leave列表中去掉主动离职的用户，
+## 重点分析被解雇的用户，即laid off users
+def Extract_Insiders():
+    Insiders = []
+    InsiderDir_1 = os.path.dirname(sys.path[0]) + '\\' + 'r5.2-1'
+    InsiderDir_2 = os.path.dirname(sys.path[0]) + '\\' + 'r5.2-2'
+    InsiderDir_3 = os.path.dirname(sys.path[0]) + '\\' + 'r5.2-3'
+    # r5.2-1-ALT1465.csv
+    for user in os.listdir(InsiderDir_1):
+        Insiders.append(user[7:-4])
+    for user in os.listdir(InsiderDir_2):
+        Insiders.append(user[7:-4])
+    for user in os.listdir(InsiderDir_3):
+        Insiders.append(user[7:-4])
+    return Insiders
+
+
 print '分析CERT5.2所有用户与离职员工的关联...\n'
 
 
 print '首先提取离职的员工列表...\n'
-f = open('CERT5.2-LaidOff-Users.csv', 'r')
+f = open('CERT5.2-Leave-Users.csv', 'r')
 # Laid off Users in CERT5.2 from 2009-12 to 2011-05
 # RMB1821,2010-02,Rose Maisie Blackwell,RMB1821,Rose.Maisie.Blackwell@dtaa.com,Salesman,,1 - Executive,5 - SalesAndMarketing,2 - Sales,5 - RegionalSales,Donna Erin Black
 f_lst = f.readlines()
@@ -79,12 +99,23 @@ def ExtTime(time): # time = '2010-02'
     month = float(time[5:])
     return year, month
 
-
+# 从用户列表中过滤掉制定列表，即从A中过滤掉B
+def FilterUser(A, B):
+    for user in A:
+        if user[0] in B:
+            # ['RMB1821', '2010-02',
+            # ['Rose Maisie Blackwell', 'RMB1821', 'Rose.Maisie.Blackwell@dtaa.com', 'Salesman', '', '1 - Executive', '5 - SalesAndMarketing', '2 - Sales', '5 - RegionalSales', 'Donna Erin Black']]
+            A.remove(user)
+    return A
 
 print '开始分析所有用户的离职关系...\n'
 print '将CERT5.2所有用户的离职关系数据写入文件...\n'
-f = open('CERT5.2-LaidOff-Relationship.csv','w')
-f.write('CERT5.2 LaidOff Relationships for all Users\n')
+f = open('CERT5.2-Leave-Relationship_Counts.csv','w')
+f_1 = open('CERT5.2-Leave-Relationship.csv', 'w')  # 存储每个用户的关系中离开的用户列表
+f_2 = open('CERT5.2-LaidOff_Relationship.csv', 'w') # 存储每个用户关系中解雇的用户列表
+f.write('CERT5.2 Leave Company Relationships Counts for all Users\n')
+f_1.write('CERT5.2 Leave Company Relationships Users for all Users\n')
+f_2.write('CERT5.2 Laid Off Company Relationships Users for all Users\n')
 # [user_id, LaidOff Time, a1,a2,a3,a4,a5]记录用户的ID，离职时间以及数字化的五个层次离职人数
 LaidOff_Users_Relationships = []
 # ['HBW0057', '1 - Executive', '2 - ResearchAndEngineering', '1 - ProjectManagement', '']
@@ -93,6 +124,9 @@ print 'Users_LaidOff is like...', Users_LaidOff[0], '\n'
 print 'Users_CERT52 is like...', Users_CERT52[0], '\n'
 for usr in Users_LaidOff:
     LaidOff_Users.append(usr[0])
+Insiders = Extract_Insiders()
+# 建立一个文件，用于存放1999个用户的周围被解雇的用户关系
+
 for user in Users_CERT52[:]:
     Insider_LaidOff_0 = [] # 同一团队
     Insider_LaidOff_1 = [] # 同一部门不同团队
@@ -201,7 +235,99 @@ for user in Users_CERT52[:]:
     f.write(',')
     f.write(str(len(Insider_LaidOff_4)))
     f.write('\n')
+    ##
+    ##
+    ## Leave用户的统计计数完毕, 开始计入Leave用户列表
+    print '......<<<<<<开始记录', user[0], ' Leave用户列表>>>>>>......\n\n'
+    f_1.write(user[0])
+    f_1.write(',')
+    f_1.write(User_Time)
+    f_1.write(':\n')
+    f_1.write('Insider_LaidOff_0')
+    f_1.write(',')
+    for ele in Insider_LaidOff_0:
+        f_1.write(ele[0])
+        f_1.write(',')
+    f_1.write('\n')
+    f_1.write('Insider_LaidOff_1')
+    f_1.write(',')
+    #print Insider_LaidOff_0[0], '\n'
+    #print Insider_LaidOff_1[0], '\n'
+    #print Insider_LaidOff_2[0], '\n'
+    #print Insider_LaidOff_3[0], '\n'
+    #print Insider_LaidOff_4[0], '\n'
+    for ele in Insider_LaidOff_1:
+        #print 'ele is ', ele, '\n'
+        f_1.write(ele[0])
+        f_1.write(',')
+    f_1.write('\n')
+    f_1.write('Insider_LaidOff_2')
+    f_1.write(',')
+    for ele in Insider_LaidOff_2:
+        f_1.write(ele[0])
+        f_1.write(',')
+    f_1.write('\n')
+    f_1.write('Insider_LaidOff_3')
+    f_1.write(',')
+    for ele in Insider_LaidOff_3:
+        f_1.write(ele[0])
+        f_1.write(',')
+    f_1.write('\n')
+    f_1.write('Insider_LaidOff_4')
+    f_1.write(',')
+    for ele in Insider_LaidOff_4:
+        f_1.write(ele[0])
+        f_1.write(',')
+    f_1.write('\n')
+    ##
+    ##
+    ##
+    ## Leave用户统计完毕，开始写入LaidOff用户
+    print '开始过滤Insiders用户...\n'
+    Insider_LaidOff_0 = FilterUser(Insider_LaidOff_0, Insiders)
+    Insider_LaidOff_1 = FilterUser(Insider_LaidOff_1, Insiders)
+    Insider_LaidOff_2 = FilterUser(Insider_LaidOff_2, Insiders)
+    Insider_LaidOff_3 = FilterUser(Insider_LaidOff_3, Insiders)
+    Insider_LaidOff_4 = FilterUser(Insider_LaidOff_4, Insiders)
+    print '......<<<<<<开始记录', user[0], ' Laid off用户列表>>>>>>......\n\n'
+    f_2.write(user[0])
+    f_2.write(',')
+    f_2.write(User_Time)
+    f_2.write(':\n')
+    f_2.write('Insider_LaidOff_0')
+    f_2.write(',')
+    for ele in Insider_LaidOff_0:
+        f_2.write(ele[0])
+        f_2.write(',')
+    f_2.write('\n')
+    f_2.write('Insider_LaidOff_1')
+    f_2.write(',')
+    for ele in Insider_LaidOff_1:
+        f_2.write(ele[0])
+        f_2.write(',')
+    f_2.write('\n')
+    f_2.write('Insider_LaidOff_2')
+    f_2.write(',')
+    for ele in Insider_LaidOff_2:
+        f_2.write(ele[0])
+        f_2.write(',')
+    f_2.write('\n')
+    f_2.write('Insider_LaidOff_3')
+    f_2.write(',')
+    for ele in Insider_LaidOff_3:
+        f_2.write(ele[0])
+        f_2.write(',')
+    f_2.write('\n')
+    f_2.write('Insider_LaidOff_4')
+    f_2.write(',')
+    for ele in Insider_LaidOff_4:
+        f_2.write(ele[0])
+        f_2.write(',')
+    f_2.write('\n')
+
 f.close()
+f_1.close()
+f_2.close()
 print '所有用户的离职关系分析完毕..\n'
 for i in range(10):
     print LaidOff_Users_Relationships[i], '\n'
