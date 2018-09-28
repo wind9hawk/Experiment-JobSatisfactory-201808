@@ -10,6 +10,7 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 import numpy as np
+import matplotlib.pyplot as plt
 
 print '......<<<<<<', '本程序将试着用Kmeans与PCA作为工具初步分析Leave/LaidOff Relationships>>>>>>......'
 print '首先读入待分析的文件数据，以及CERT5.2中Insiders_2列表...\n'
@@ -59,7 +60,7 @@ if Flag > 0:
     print 'Step-1. 提取目标数组...\n'
     Leave_Counts = []
     LaidOff_Counts = []
-    for line in f_1_lst:
+    for line in f_2_lst:
         line_lst = line.strip('\n').strip(',').split(',')
         if len(line_lst) < 2:
             continue
@@ -75,21 +76,48 @@ if Flag > 0:
         print Leave_Counts[i], '\n'
     print 'Leave_Counts数组初始化完毕...\n'
 
-    for line in f_2_lst:
-        line_lst = line.strip('\n').strip(',').split(',')
-        if len(line_lst) < 2:
-            continue
-        # VCM0992,No,1,13,22,82,120
-        counts = []
-        counts.append(float(line_lst[2]))
-        counts.append(float(line_lst[3]))
-        counts.append(float(line_lst[4]))
-        counts.append(float(line_lst[5]))
-        counts.append(float(line_lst[6]))
-        LaidOff_Counts.append(counts)
-    for i in range(10):
-        print LaidOff_Counts[i], '\n'
-    print 'LaidOff_Counts数组初始化完毕...\n'
+    print '开始进行KMeans聚类...\n'
+    print '首先进行一个PCA化...\n'
+    ##
+    ##
+    Leave_Cnts_array = np.array(Leave_Counts)
+    pca = PCA()
+    Leave_Cnts_array_pca = pca.fit_transform(Leave_Cnts_array)
+    ##
+    ##
+    Y_pred = KMeans(n_clusters=2).fit(Leave_Cnts_array_pca).labels_
+    Class_0_index = []
+    Class_1_index = []
+    for i in range(len(Y_pred)):
+        if Y_pred[i] == 0:
+            Class_0_index.append(i)
+        else:
+            Class_1_index.append(i)
+    ##
+    ##
+    print '得到了正负类的标签，开始绘图...\n'
+    plt.xlabel('PCA-1-Dimension')
+    plt.ylabel('PCA-2-Dimension')
+    Class_0_Y = []
+    Class_1_Y = []
+    Class_Insider_Y = []
+    for i in range(len(Y_pred)):
+        if i in Class_0_index:
+            Class_0_Y.append(Leave_Cnts_array_pca[i])
+        if i in Class_1_index:
+            Class_1_Y.append(Leave_Cnts_array_pca[i])
+        if i in Insiders_2_Index:
+            Class_Insider_Y.append(Leave_Cnts_array_pca[i])
+    Class_0_Y = np.array(Class_0_Y)
+    Class_1_Y = np.array(Class_1_Y)
+    Class_Insider_Y = np.array(Class_Insider_Y)
+    print '得到了类别的Y值数组...\n'
+
+    #plt.plot(Class_0_index, Class_0_Y[:,0], 'bx', Class_1_index, Class_1_Y[:,0], 'g^', Insiders_2_Index, Class_Insider_Y[:,0], 'ro')
+    plt.plot(Class_0_Y[:,0], Class_0_Y[:,1], 'bx', Class_1_Y[:,0], Class_1_Y[:,1], 'g^', Class_Insider_Y[:,0], Class_Insider_Y[:,1], 'ro')
+    plt.show()
+    plt.close()
+
 
 
 

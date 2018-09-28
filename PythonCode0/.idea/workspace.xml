@@ -4,9 +4,8 @@
     <list default="true" id="a11a8091-feaa-4588-9073-19178442aee6" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../CERT5.2工作满意度分析实验.docx" beforeDir="false" afterPath="$PROJECT_DIR$/../CERT5.2工作满意度分析实验.docx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CERT5.2-Users-LaidOff-Relationship.py" beforeDir="false" afterPath="$PROJECT_DIR$/CERT5.2-Users-LaidOff-Relationship.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/KMeans-for-LaidOff.py" beforeDir="false" afterPath="$PROJECT_DIR$/KMeans-for-LaidOff.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../~$RT5.2数据官方说明.doc" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../~$RT5.2工作满意度分析实验.docx" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -18,20 +17,22 @@
     <session id="-1611095559">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="18" />
+          <entry key="project.closed" value="21" />
           <entry key="project.open.time.0" value="2" />
           <entry key="project.open.time.17" value="1" />
           <entry key="project.open.time.18" value="3" />
           <entry key="project.open.time.19" value="3" />
+          <entry key="project.open.time.20" value="1" />
           <entry key="project.open.time.22" value="1" />
+          <entry key="project.open.time.24" value="1" />
           <entry key="project.open.time.25" value="1" />
           <entry key="project.open.time.27" value="1" />
           <entry key="project.open.time.3" value="1" />
           <entry key="project.open.time.30" value="1" />
           <entry key="project.open.time.4" value="2" />
-          <entry key="project.open.time.5" value="2" />
+          <entry key="project.open.time.5" value="3" />
           <entry key="project.open.time.8" value="1" />
-          <entry key="project.opened" value="19" />
+          <entry key="project.opened" value="22" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
@@ -48,14 +49,14 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="20375" />
+          <entry key="py" value="21083" />
           <entry key="txt" value="120" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="PLAIN_TEXT" value="120" />
-          <entry key="Python" value="20375" />
+          <entry key="Python" value="21083" />
         </counts>
       </usages-collector>
     </session>
@@ -103,10 +104,10 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/JS_CLF-KMeans-v0.1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="265">
+            <state relative-caret-position="4030">
               <caret line="160" column="5" selection-start-line="160" selection-start-column="5" selection-end-line="160" selection-end-column="5" />
               <folding>
                 <element signature="e#868#878#0" expanded="true" />
@@ -138,11 +139,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/KMeans-for-LaidOff.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2184">
-              <caret line="88" column="37" selection-start-line="77" selection-start-column="4" selection-end-line="88" selection-end-column="37" />
+            <state relative-caret-position="292">
+              <caret line="75" column="35" selection-start-line="75" selection-start-column="35" selection-end-line="75" selection-end-column="35" />
               <folding>
                 <element signature="e#176#190#0" expanded="true" />
               </folding>
@@ -173,14 +174,13 @@
         <option value="$PROJECT_DIR$/LaidOff_Statistical.py" />
         <option value="$PROJECT_DIR$/Draw_LaidOff_Relationship.py" />
         <option value="$PROJECT_DIR$/CERT5.2-Users-LaidOff-Relationship.py" />
-        <option value="$PROJECT_DIR$/KMeans-for-LaidOff.py" />
         <option value="$PROJECT_DIR$/JS_CLF-KMeans-v0.1.py" />
+        <option value="$PROJECT_DIR$/KMeans-for-LaidOff.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="27" />
-    <option name="y" value="3" />
+    <option name="x" value="25" />
     <option name="width" value="1750" />
     <option name="height" value="970" />
   </component>
@@ -228,7 +228,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.JS_CLF-KMeans-v0.1">
+  <component name="RunManager" selected="Python.KMeans-for-LaidOff">
     <configuration name="CERT5.2-Users-LaidOff-Relationship" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="PythonCode0" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -343,8 +343,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.JS_CLF-KMeans-v0.1" />
         <item itemvalue="Python.KMeans-for-LaidOff" />
+        <item itemvalue="Python.JS_CLF-KMeans-v0.1" />
         <item itemvalue="Python.CERT5.2-Users-LaidOff-Relationship" />
         <item itemvalue="Python.Draw_LaidOff_Relationship" />
         <item itemvalue="Python.LaidOff_Statistical" />
@@ -401,8 +401,8 @@
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.3531915" />
-      <window_info anchor="bottom" id="Debug" order="3" weight="0.43856922" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.5517731" />
+      <window_info anchor="bottom" id="Debug" order="3" weight="0.43829787" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
@@ -505,6 +505,16 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/JS_CLF-KMeans-v0.1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4030">
+          <caret line="160" column="5" selection-start-line="160" selection-start-column="5" selection-end-line="160" selection-end-column="5" />
+          <folding>
+            <element signature="e#868#878#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/CERT5.2-Leave-Relationship_Counts.csv">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
@@ -524,20 +534,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/KMeans-for-LaidOff.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2184">
-          <caret line="88" column="37" selection-start-line="77" selection-start-column="4" selection-end-line="88" selection-end-column="37" />
+        <state relative-caret-position="292">
+          <caret line="75" column="35" selection-start-line="75" selection-start-column="35" selection-end-line="75" selection-end-column="35" />
           <folding>
             <element signature="e#176#190#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/JS_CLF-KMeans-v0.1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="265">
-          <caret line="160" column="5" selection-start-line="160" selection-start-column="5" selection-end-line="160" selection-end-column="5" />
-          <folding>
-            <element signature="e#868#878#0" expanded="true" />
           </folding>
         </state>
       </provider>
