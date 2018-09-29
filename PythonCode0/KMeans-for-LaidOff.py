@@ -60,7 +60,7 @@ if Flag > 0:
     print 'Step-1. 提取目标数组...\n'
     Leave_Counts = []
     LaidOff_Counts = []
-    for line in f_2_lst:
+    for line in f_1_lst:
         line_lst = line.strip('\n').strip(',').split(',')
         if len(line_lst) < 2:
             continue
@@ -76,13 +76,56 @@ if Flag > 0:
         print Leave_Counts[i], '\n'
     print 'Leave_Counts数组初始化完毕...\n'
 
+    print '......<<<<<<如果直接依据离职人员数量进行排队，输出排队后Insider_2中攻击者的排序>>>>>>......\n\n'
+    Users_Leave_Relationship = []
+    for line in f_2_lst:
+        line_lst = line.strip('\n').strip(',').split(',')
+        if len(line_lst) < 2:
+            continue
+        # VCM0992,No,1,13,22,82,120
+        counts = []
+        counts.append(line_lst[0])
+        counts.append(line_lst[1])
+        counts.append(float(line_lst[2]))
+        counts.append(float(line_lst[3]))
+        counts.append(float(line_lst[4]))
+        counts.append(float(line_lst[5]))
+        counts.append(float(line_lst[6]))
+        Users_Leave_Relationship.append(counts)
+    print '用户数据示例: \n'
+    for i in range(5):
+        print Users_Leave_Relationship[i], '\n'
+    X_0 = sorted(Users_Leave_Relationship, key=lambda U:U[2], reverse=True)
+    X_1 = sorted(Users_Leave_Relationship, key=lambda U: U[2] + U[3], reverse=True)
+    #X_2 = sorted(Users_Leave_Relationship, key=lambda U: U[2], reverse=True)
+    #X_3 = sorted(Users_Leave_Relationship, key=lambda U: U[2], reverse=True)
+    #X_4 = sorted(Users_Leave_Relationship, key=lambda U: U[2], reverse=True)
+    print '排序后用户数据示例: \n'
+    for i in range(5):
+        print X_1[i], '\n'
+    print '开始输出Insiders_2在排序后的索引...\n'
+    print '首先输出X_0...\n'
+    X_0_UserID = []
+    for ele in X_1:
+        X_0_UserID.append(ele[0])
+    print len(Insiders_2), '\n'
+    for ele in Insiders_2:
+        print ele, X_0_UserID.index(ele),'\n'
+
+
+    print '......<<<<<<<离职人员数量排序分析完毕>>>>>>......\n\n'
+
+    sys.exit()
+
+
     print '开始进行KMeans聚类...\n'
     print '首先进行一个PCA化...\n'
     ##
     ##
     Leave_Cnts_array = np.array(Leave_Counts)
     pca = PCA()
-    Leave_Cnts_array_pca = pca.fit_transform(Leave_Cnts_array)
+    #Leave_Cnts_array_pca = pca.fit_transform(Leave_Cnts_array)
+    Leave_Cnts_array_pca = MinMaxScaler().fit_transform(Leave_Cnts_array)
     ##
     ##
     Y_pred = KMeans(n_clusters=2).fit(Leave_Cnts_array_pca).labels_

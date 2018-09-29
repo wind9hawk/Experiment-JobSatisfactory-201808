@@ -37,7 +37,7 @@ print '所有需要分析的LDAP文件有： ', fileMonth, '\n'
 f = open(fileMonth[0], 'r')
 f_lst = f.readlines()
 f.close()
-f_w = open('CERT5.2-LaidOff-Users.csv', 'w') # 定义一个记录离职员工的文件
+f_w = open('CERT5.2-Leave-Users.csv', 'w') # 定义一个记录离职员工的文件，注意离职leave与解雇laid off不同
 f_w.write('Laid off Users in CERT5.2 from 2009-12 to 2011-05\n')
 for usr in f_lst:
     line = usr.strip('\n').strip(',').split(',')
