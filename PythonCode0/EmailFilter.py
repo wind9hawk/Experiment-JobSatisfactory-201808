@@ -64,7 +64,7 @@ RootDir = r'G:\GitHub\Essay-Experiments\CERT5.2-Results'
 UsersDir = RootDir + '\\' + 'CERT5.2-Insider_2-Records'
 EmailDir = RootDir + '\\' + 'CERT5.2-Insiders_2-EmailRecords'
 
-for user in os.listdir(UsersDir)[:1]:
+for user in os.listdir(UsersDir)[:]:
     print '....<<<<<首先读取', user, ' 的所有邮件通讯数据>>>>....\n\n'
     if os.path.exists(EmailDir) == False:
         os.makedirs(EmailDir)
@@ -127,8 +127,65 @@ for user in os.listdir(UsersDir)[:1]:
         if len(line[3].split(';')) > 1 or len(line[6].split(';')) > 1:
             print '群发/群收邮件，跳过...\n'
             continue
-
+        if line[-2] == 'Send':
+            # 04/07/2010 13:52:21,HMS1658,PC-2691,Hasad.Jason.Leon@dtaa.com,,,Hedda.Melissa.Slater@dtaa.com,Send,23957,,
+            # 对于HMS1658而言，其没有附件属性，因而总体个数小于标准，send标志在[-2]位置
+            # 06/04/2010 12:56:28,HMS1658,PC-2691,Melinda.Hilary.Mercer@dtaa.com,,,Hedda.Melissa.Slater@dtaa.com,Send,40710,,
+            # 先判断用户是否已存在列表中，即对应的feat是否已建立？
+            SendTo = line[3][:line[3].index('@')]
+            if SendTo not in Send_Users:
+                Send_Users.append(SendTo)
+                # 建立其发送特征
+                Send_Sum = 1.0
+                Send_Avg_Size = float(line[-1])
+                Send_Avg_Attach = 0.0
+                send_feat = []
+                send_feat.append(SendTo)
+                send_feat.append(Send_Sum)
+                send_feat.append(Send_Avg_Size)
+                send_feat.append(Send_Avg_Attach)
+                Send_Feats.append(send_feat)
+                continue
+            else:
+                # 说明之前已经初始化针对该用户的发送特征，接下来需要更新部分特征参数
+                # 定位
+                Index_sender = Send_Users.index(SendTo)
+                # 所以找到了要更新的Send_Feats中的位置
+                Send_Feats[Index_sender][1] += 1.0
+                Send_Feats[Index_sender][2] += float(line[-1])
+                Send_Feats[Index_sender][3] += 0
+        # 类似的建立对饮的Receive
+        if line[-2] == 'Receive':
+            # 先判断用户是否已存在列表中，即对应的feat是否已建立？
+            RecvFrom = line[6][:line[6].index('@')]
+            if RecvFrom not in Recv_Users:
+                Recv_Users.append(RecvFrom)
+                # 建立其接收特征
+                Recv_Sum = 1.0
+                Recv_Avg_Size = float(line[-1])
+                Recv_Avg_Attach = 0.0
+                recv_feat = []
+                recv_feat.append(RecvFrom)
+                recv_feat.append(Recv_Sum)
+                recv_feat.append(Recv_Avg_Size)
+                recv_feat.append(Recv_Avg_Attach)
+                Recv_Feats.append(recv_feat)
+                print user, 'receive email from ', RecvFrom, '分析完毕...\n\n'
+                continue
+            else:
+                # 说明之前已经初始化针对该用户的接收特征，接下来需要更新部分特征参数
+                # 定位
+                Index_recv = Recv_Users.index(RecvFrom)
+                # 所以找到了要更新的Recv_Feats中的位置
+                Recv_Feats[Index_recv][1] += 1.0
+                Recv_Feats[Index_recv][2] += float(line[-1])
+                Recv_Feats[Index_recv][3] += 0.0
+                print user, 'receive email from ', RecvFrom, '分析完毕...\n\n'
+                continue
         if line[-3] == 'Send':
+            # 04/07/2010 13:52:21,HMS1658,PC-2691,Hasad.Jason.Leon@dtaa.com,,,Hedda.Melissa.Slater@dtaa.com,Send,23957,,
+            # 对于HMS1658而言，其没有附件属性，因而总体个数小于标准，send标志在[-2]位置
+            # 06/04/2010 12:56:28,HMS1658,PC-2691,Melinda.Hilary.Mercer@dtaa.com,,,Hedda.Melissa.Slater@dtaa.com,Send,40710,,
             # 先判断用户是否已存在列表中，即对应的feat是否已建立？
             SendTo = line[3][:line[3].index('@')]
             if SendTo not in Send_Users:
@@ -183,11 +240,11 @@ for user in os.listdir(UsersDir)[:1]:
     print user, '发送邮件与接收邮件分析完毕...\n'
     print '发送邮件统计示例...\n'
     print len(Send_Feats), len(Send_Users), '\n'
-    for i in range(10):
+    for i in range(5):
         print Send_Feats[i], '\n'
     print '接收邮件统计示例...\n'
     print len(Recv_Feats), len(Recv_Users), '\n'
-    for i in range(10):
+    for i in range(5):
         print Recv_Feats[i], '\n'
 
     print '....<<<<开始比较发送与接收列表，并形成最终的用户邮件通讯行为特征>>>>....\n\n'
