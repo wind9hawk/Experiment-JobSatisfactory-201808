@@ -19,6 +19,28 @@ def Cal_RelationLevel(sr, s1, s2, s3, r1, r2, r3):
     RL = math.log10(1 + (1 - abs(sr)) * (s1 * s2 + r1 * r2) * (s1 * s3 + r1 * r3))
     return RL
 
+# 定义了一个自动输出由大到小的索引函数
+# 如输入杂乱的五个群簇中心点的定性量表示，要求依次输出定性表示最高的K/2个中心点代表的群簇索引
+def Center2FriendIndex(Centers, K):
+    # 要求输入一个原始的中心值定性表示列表
+    Index_dic = {}
+    i = 0
+    while i < len(Centers):
+        Index_dic[Centers[i]] = i
+        i += 1
+    if K % 2 == 0:
+        turn = K/2
+    else:
+        turn = K/2 + 1
+    Index_Friends = []
+    j = 0
+    while j < turn:
+        index_0 = Index_dic[max(Centers)]
+        Index_Friends.append(index_0)
+        Centers.remove(max(Centers))
+        j += 1
+    return Index_Friends
+
 
 print '....<<<<CERT5.2用户邮件联系特征数据定位准备开始>>>>....\n\n'
 # 首先需要指定几个文件夹目录
@@ -69,7 +91,8 @@ print '....<<<<开始就每个用户的邮件通讯特征依次进行聚类、�
 # 定义一个存放所有用户ID顺序的列表
 CERT52_Users = []
 # 打开离职人员关系文件
-f_laidoff = open(r'CERT5.2-LaidOff_Relationship.csv', 'r')
+#f_laidoff = open(r'CERT5.2-LaidOff_Relationship.csv', 'r')
+f_laidoff = open(r'CERT5.2-Leave-Relationship.csv', 'r')
 f_lo_lst = f_laidoff.readlines()
 f_laidoff.close()
 # 初始化最终的用户JS_Risk列表
@@ -90,6 +113,9 @@ for file in os.listdir(EmailFeats_Dir)[:1]:
     for line in f_0_lst:
         line_lst = line.strip('\n').strip(',').split(',')
         if len(line_lst) < 2:
+            continue
+        # 如果邮件名不是企业规范名称，不分析，跳过
+        if len(line_lst[0]) != 7:
             continue
         user_contacts.append(line_lst[0])
         tmp_0 = []
@@ -175,8 +201,12 @@ for file in os.listdir(EmailFeats_Dir)[:1]:
         Cluster_RL.append(rl)
     print file[0:7], '\n群簇中心RelationLevel计算完毕...\n\n'
     # 选择RL最大的一个中心代表的群簇，作为Friends级别
-    Index_Friends = Cluster_RL.index(max(Cluster_RL))
-    print file[:7], '选中的friends群簇标号为： ', Index_Friends, '\n\n'
+    Cluster_RL_0 = copy.copy(Cluster_RL)
+    Index_Friends = Center2FriendIndex(Cluster_RL_0, k)
+    print file[:7], k, '选中的friends群簇标号为： \n'
+    print 'Cluster_RL is ', Cluster_RL, '\n'
+    for line in Index_Friends:
+        print line, Cluster_RL[line], '\n'
     # 将该用户此次KMeans的全部分类结果存放到该用户的聚类结果文件中
     # 选中的Friends群簇自然用户表示为Cluster_Users[Index_Friends]和Cluster_Feats[Index_Friends]
     f_2 = open(EmailFeats_Dir + '\\' + file[0:7] + '_KMeans_Clusters.csv', 'w')
@@ -191,8 +221,19 @@ for file in os.listdir(EmailFeats_Dir)[:1]:
     f_2.close()
     # single cluster: Cluster_Friends
     # multiple clusters: Clusters_Users
-    Cluster_Friends = copy.copy(Clusters_Users[Index_Friends])
-    Cluster_Friends_Feats = copy.copy(Clusters_Feats[Index_Friends])
+    # Cluster_Friends = copy.copy(Clusters_Users[Index_Friends])
+    # Cluster_Friends_Feats = copy.copy(Clusters_Feats[Index_Friends])
+    Cluster_Friends = []
+    # 不区分朋友亲密等级，而仅仅二元区分是不是朋友
+    for index in Index_Friends:
+        for usr in Clusters_Users[index]:
+            Cluster_Friends.append(usr)
+    Cluster_Friends_Feats = []
+    for index in Index_Friends:
+        for feat in Clusters_Feats[index]:
+            Cluster_Friends_Feats.append(feat)
+
+
     print '..<<', file[0:7], 'Friends群簇分析完毕>>..\n\n'
     print '朋友共有： ', len(Cluster_Friends), '\n'
     i = 0

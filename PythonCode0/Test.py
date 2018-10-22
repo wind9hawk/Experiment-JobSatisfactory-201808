@@ -5,7 +5,7 @@ import sys,os
 # 第一次实验发现BYO846的JS_Risk计算为0，怀疑单纯考虑一个friends群簇没有离职人员命中
 Flag_0 = True
 if Flag_0:
-    f_laidoff = open(r'CERT5.2-LaidOff_Relationship.csv', 'r')
+    f_laidoff = open(r'CERT5.2-Leave-Relationship.csv', 'r')
     f_cluster_friends = open(sys.path[0] + '\\' + 'CERT5.2_EmailContactFeats-0.1' + '\\' + 'BYO1846_KMeans_Clusters.csv', 'r')
     f_laidoff_lst = f_laidoff.readlines()
     f_cluster_friends_lst = f_cluster_friends.readlines()
@@ -23,7 +23,7 @@ if Flag_0:
     # Tatyana_A_Johnston,Tana_P_Orr,Indigo_Christensen,Lara.Y.Lopez,OJC0930,Jane.A.Griffin,Wong-Flynn,IKB0691,DLM1699,JQS1350,DJT1534,DES1617,
     # Cluster4
     # DLH0679,JBI1134,Colon-Upton,DEM0018,
-    Cluster_Friends = [[] for i in range(5)]
+    Cluster_Friends = [[] for i in range(4)]
     line = f_cluster_friends_lst[1].strip('\n').strip(',').split(',')
     for ele in line:
         Cluster_Friends[0].append(ele)
@@ -36,9 +36,9 @@ if Flag_0:
     line = f_cluster_friends_lst[7].strip('\n').strip(',').split(',')
     for ele in line:
         Cluster_Friends[3].append(ele)
-    line = f_cluster_friends_lst[9].strip('\n').strip(',').split(',')
-    for ele in line:
-        Cluster_Friends[4].append(ele)
+    #line = f_cluster_friends_lst[9].strip('\n').strip(',').split(',')
+    #for ele in line:
+    #    Cluster_Friends[4].append(ele)
 
     # 离职关系数据格式
     # BYO1846,2010-12:
@@ -95,7 +95,7 @@ if Flag_0:
     while i < 5:
         for usr in LaidOff[i]:
             j = 0
-            while j < 5:
+            while j < 4:
                 if usr in Cluster_Friends[j]:
                     LaidOff_Friends[i].append(usr)
                     break
@@ -110,4 +110,22 @@ if Flag_0:
         print i, LaidOff_Friends[i], '\n'
     sys.exit()
 
-
+Flag_1 = False
+# 验证下python中函数调用的函数参数的引用情况
+# 函数调用改变了原始参数！
+a = range(20)
+def Sort_List(a, k):
+    if k/2 == 0:
+        turn = k/2
+    else:
+        turn = k/2 + 1
+    new_lst = []
+    i = 0
+    while i < turn:
+        new_lst.append(max(a))
+        a.remove(max(a))
+        i += 1
+    return new_lst
+b = Sort_List(a,5)
+print 'b, is ', b, '\n'
+print 'a is ', a, '\n'

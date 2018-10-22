@@ -75,8 +75,11 @@ def Dist_Pt_Clst(Pa, Clst_a):
     # 如果样本中包含Pa，那么计算平均距离时除以len(Clus_a) - 1
     if ListA_In_ListB(Pa, Clst_a):
     #if Pa in Clst_a:
-        dist = dist / (len( Clst_a) - 1)
-        return  dist
+        if len(Clst_a) > 1:
+            dist = dist / (len( Clst_a) - 1)
+            return  dist
+        else:
+            return 0.0
     # 如果样本中不包含Pa，那么计算平均距离时正常计算
     if ListA_In_ListB(Pa, Clst_a) == False:
     #if Pa not in Clst_a:
@@ -203,6 +206,7 @@ def Auto_K_Choice(JS_lst):
     print '..<<K = [2, 11]的KMeans聚类的轮廓系数计算完毕>>..\n\n'
     print '各个K值的K均值聚类的最优轮廓系数为： \n'
     for line in SC_lst:
+        print 'SC_lst is ', '\n'
         print 'K值为： ',line[0], ' 轮廓系数为 ',line[1], '\n'
     print '其中轮廓系数最高的K值为: \n'
     SC_value = 0.0
