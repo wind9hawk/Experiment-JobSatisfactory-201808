@@ -16,7 +16,12 @@ import copy # 列表深复制
 
 # 定义一个群簇中心点的定性指标计算函数
 def Cal_RelationLevel(sr, s1, s2, s3, r1, r2, r3):
-    RL = math.log10(1 + (1 - abs(sr)) * (s1 * s2 + r1 * r2) * (s1 * s3 + r1 * r3))
+    # RL = math.log10(1 + (1 - abs(sr)) * (s1 * s2 + r1 * r2) * (s1 * s3 + r1 * r3))
+    # 为了打开单纯发送与接收的开关，尝试将对数变量的乘法因素变为加法（或者修正EM为 [2 - abs(sr)]）
+    # RL = math.log10(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3))
+    sr = float((s1 - r1) / (s1 + r1))
+    RL = math.log(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
+
     return RL
 
 # 定义了一个自动输出由大到小的索引函数
@@ -98,8 +103,14 @@ f_laidoff.close()
 # 初始化最终的用户JS_Risk列表
 JS_Risk = []
 # 初始化建立一个用于记录所有用户JS_Risk数据的文件CERT5.2_JS_Risks.csv
-f_JS_Risks = open('CERT5.2_JS-Risks-0.1.csv', 'w')
-for file in os.listdir(EmailFeats_Dir)[:1]:
+f_JS_Risks = open('CERT5.2_JS-Risks-Leave-0.1.csv', 'w')
+f_JS_Risks.write('JS_Risks for CERT5.2\n')
+for file in os.listdir(EmailFeats_Dir)[:]:
+    if 'feats' not in file:
+        continue
+    # 用于分析指定用户的过滤
+    if 'SIS0042' not in file:
+        continue
     CERT52_Users.append(file[0:7])
     # 读取该文件，并提取出单独的通讯用户列表以及通讯特征
     print '..<<提取', file[0:7], ' 的邮件通讯列表及其通讯特征>>..\n\n'
@@ -174,30 +185,30 @@ for file in os.listdir(EmailFeats_Dir)[:1]:
     Cluster_RL = []
     for cls in Clusters_Feats:
         # 数据示例：0.298245614035,37.0,399952.513514,0.351351351351,20.0,30114.15,0.0,
-        sr = 0.0
-        s1 = 0
-        s2 = 0
-        s3 = 0
-        r1 = 0
-        r2 = 0
-        r3 = 0
+        er = 0.0
+        s1 = 0.0
+        s2 = 0.0
+        s3 = 0.0
+        r1 = 0.0
+        r2 = 0.0
+        r3 = 0.0
         for line in cls:
-            sr += line[0]
+            er += line[0]
             s1 += line[1]
             s2 += line[2]
             s3 += line[3]
             r1 += line[4]
             r2 += line[5]
             r3 += line[6]
-        sr = sr / len(cls)
+        er = er / len(cls)
         s1 = s1 / len(cls)
         s2 = s2 / len(cls)
         s3 = s3 / len(cls)
         r1 = r1 / len(cls)
         r2 = r2 / len(cls)
         r3 = r3 / len(cls)
-        print '本群簇大小为： ', len(cls), '中心点坐标为： ', sr, s1, s2, s3, r1, r2, r3, '\n\n'
-        rl = Cal_RelationLevel(sr, s1, s2, s3, r1, r2, r3)
+        print '本群簇大小为： ', len(cls), '中心点坐标为： ', er, s1, s2, s3, r1, r2, r3, '\n\n'
+        rl = Cal_RelationLevel(er, s1, s2, s3, r1, r2, r3)
         Cluster_RL.append(rl)
     print file[0:7], '\n群簇中心RelationLevel计算完毕...\n\n'
     # 选择RL最大的一个中心代表的群簇，作为Friends级别
@@ -263,15 +274,16 @@ for file in os.listdir(EmailFeats_Dir)[:1]:
             # 此时第j行正好时目标用户
             Cnt_LaidOff_Friends = [[0.0] for i in range(5)]
             # N个关系层级，1/N为级差，这里N为5，故而选择0.2
-            Weight_Level = [[float(i/5)] for i in range(5)]
+            Weight_Level = [[float((5 - i)/5.0)] for i in range(5)]
             # q表示五个组织层次，p表示每个层次中的用户坐标
             q = 0
             while q < 5:
                 # 分别分析每个层级中离职的friends个数
                 p = 1
-                while p < len(f_lo_lst[j + q + 1]):
-                    if f_lo_lst[j + q + 1][p] in Cluster_Friends:
-                        Cnt_LaidOff_Friends[q] += 1
+                while p < len((f_lo_lst[j + q + 1]).strip('\n').strip(',').split(',')):
+                    f_lo_line = f_lo_lst[j + q + 1].strip('\n').strip(',').split(',')
+                    if f_lo_line[p] in Cluster_Friends:
+                        Cnt_LaidOff_Friends[q][0] += 1
                         p += 1
                         continue
                     else:
@@ -282,7 +294,9 @@ for file in os.listdir(EmailFeats_Dir)[:1]:
             js_risk = 0.0
             n = 0
             while n < 5:
+                print n, ':', Cnt_LaidOff_Friends[n][0], ' * ', Weight_Level[n][0], '\n'
                 js_risk += Cnt_LaidOff_Friends[n][0] * Weight_Level[n][0]
+                print n, ' js_risk is ', js_risk, '\n'
                 n += 1
             tmp_1 = []
             tmp_1.append(file[0:7])

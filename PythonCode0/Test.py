@@ -6,7 +6,7 @@ import sys,os
 Flag_0 = True
 if Flag_0:
     f_laidoff = open(r'CERT5.2-Leave-Relationship.csv', 'r')
-    f_cluster_friends = open(sys.path[0] + '\\' + 'CERT5.2_EmailContactFeats-0.1' + '\\' + 'BYO1846_KMeans_Clusters.csv', 'r')
+    f_cluster_friends = open(sys.path[0] + '\\' + 'CERT5.2_EmailContactFeats-0.1' + '\\' + 'SIS0042_KMeans_Clusters.csv', 'r')
     f_laidoff_lst = f_laidoff.readlines()
     f_cluster_friends_lst = f_cluster_friends.readlines()
     f_laidoff.close()
@@ -23,7 +23,7 @@ if Flag_0:
     # Tatyana_A_Johnston,Tana_P_Orr,Indigo_Christensen,Lara.Y.Lopez,OJC0930,Jane.A.Griffin,Wong-Flynn,IKB0691,DLM1699,JQS1350,DJT1534,DES1617,
     # Cluster4
     # DLH0679,JBI1134,Colon-Upton,DEM0018,
-    Cluster_Friends = [[] for i in range(4)]
+    Cluster_Friends = [[] for i in range(5)]
     line = f_cluster_friends_lst[1].strip('\n').strip(',').split(',')
     for ele in line:
         Cluster_Friends[0].append(ele)
@@ -51,7 +51,7 @@ if Flag_0:
     i = 0
     while i < len(f_laidoff_lst):
         line_lst = f_laidoff_lst[i].strip('\n').strip(',').split(',')
-        if len(line_lst) == 2 and ':' in line_lst[1] and 'BYO1846' in line_lst[0]:
+        if len(line_lst) == 2 and ':' in line_lst[1] and 'GWG0497' in line_lst[0]:
             # 定位到用户在第i行
             line_users = f_laidoff_lst[i + 1].strip('\n').strip(',').split(',')
             j = 1
@@ -95,7 +95,7 @@ if Flag_0:
     while i < 5:
         for usr in LaidOff[i]:
             j = 0
-            while j < 4:
+            while j < len(Cluster_Friends):
                 if usr in Cluster_Friends[j]:
                     LaidOff_Friends[i].append(usr)
                     break

@@ -280,7 +280,10 @@ for user in os.listdir(UsersDir)[:]:
             # recv_feat_0 = Recv_Feats[Recv_Users.index(user)]
             email_feat = []
             email_feat.append(send_feat_0[0])
-            email_feat.append(float(-1))  # -1表示只有发送没有对应的接收
+            # email_feat.append(float(-1))  # -1表示只有发送没有对应的接收
+            X = float(send_feat_0[1])
+            Y = 0.0
+            email_feat.append((X-Y)/(X+Y))
             email_feat.append(float(send_feat_0[1]))
             email_feat.append(float(send_feat_0[2] / send_feat_0[1]))
             email_feat.append(float(send_feat_0[3] / send_feat_0[1]))
@@ -295,7 +298,10 @@ for user in os.listdir(UsersDir)[:]:
         recv_feat_0 = Recv_Feats[Recv_Users.index(user)]
         email_feat = []
         email_feat.append(recv_feat_0[0])
-        email_feat.append(float(0))  # 0表示只有接收没有发送
+        # email_feat.append(float(0))  # 0表示只有接收没有发送
+        X = 0.0
+        Y = float(recv_feat_0[1])
+        email_feat.append((X - Y) / (X + Y))
         email_feat.append(float(0))
         email_feat.append(float(0))
         email_feat.append(float(0))
