@@ -19,8 +19,9 @@ def Cal_RelationLevel(sr, s1, s2, s3, r1, r2, r3):
     # RL = math.log10(1 + (1 - abs(sr)) * (s1 * s2 + r1 * r2) * (s1 * s3 + r1 * r3))
     # 为了打开单纯发送与接收的开关，尝试将对数变量的乘法因素变为加法（或者修正EM为 [2 - abs(sr)]）
     # RL = math.log10(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3))
-    sr = float((s1 - r1) / (s1 + r1))
-    RL = math.log(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
+    # sr = float((s1 - r1) / (s1 + r1))
+    # RL = math.log(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
+    RL = math.log(1 + math.pow(math.exp(abs(0.5 - sr)), -1) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
 
     return RL
 
@@ -109,8 +110,8 @@ for file in os.listdir(EmailFeats_Dir)[:]:
     if 'feats' not in file:
         continue
     # 用于分析指定用户的过滤
-    if 'SIS0042' not in file:
-        continue
+    #if 'SIS0042' not in file:
+    #   continue
     CERT52_Users.append(file[0:7])
     # 读取该文件，并提取出单独的通讯用户列表以及通讯特征
     print '..<<提取', file[0:7], ' 的邮件通讯列表及其通讯特征>>..\n\n'
