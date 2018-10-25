@@ -1,9 +1,13 @@
 # coding:utf-8
 # 例行：含有控制开关的测试模块文件
 import sys,os
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+import math
+import copy
 # 测试1
 # 第一次实验发现BYO846的JS_Risk计算为0，怀疑单纯考虑一个friends群簇没有离职人员命中
-Flag_0 = True
+Flag_0 = False
 if Flag_0:
     f_laidoff = open(r'CERT5.2-Leave-Relationship.csv', 'r')
     f_cluster_friends = open(sys.path[0] + '\\' + 'CERT5.2_EmailContactFeats-0.1' + '\\' + 'SIS0042_KMeans_Clusters.csv', 'r')
@@ -113,19 +117,77 @@ if Flag_0:
 Flag_1 = False
 # 验证下python中函数调用的函数参数的引用情况
 # 函数调用改变了原始参数！
-a = range(20)
-def Sort_List(a, k):
-    if k/2 == 0:
-        turn = k/2
-    else:
-        turn = k/2 + 1
-    new_lst = []
+if Flag_1 == True:
+    a = range(20)
+    def Sort_List(a, k):
+        if k/2 == 0:
+          turn = k/2
+        else:
+           turn = k/2 + 1
+        new_lst = []
+        i = 0
+        while i < turn:
+            new_lst.append(max(a))
+            a.remove(max(a))
+            i += 1
+        return new_lst
+    b = Sort_List(a,5)
+    print 'b, is ', b, '\n'
+    print 'a is ', a, '\n'
+
+
+# 本测试代码用于验证0.2版本的JS_Risk的准确度
+# 通过对计算得到的JS_Risk进行排序，从而得到最高的用户，显示出所有场景二的30个用户所处的位置
+Flag_2 = True
+if Flag_2 == True:
+    f_js_risk = open('CERT5.2_JS-Risks-Leave-0.2.csv', 'r')
+    f_js_risk_lst = f_js_risk.readlines()
+    f_js_risk.close()
+    # 场景二用户的ID名单
+    Insiders_2 = []
+    Insiders_2_Dir = os.path.dirname(sys.path[0]) + '\\' + 'r5.2-2'
+    for usr in os.listdir(Insiders_2_Dir):
+        Insiders_2.append(usr[7:-4])
+    print 'CERT5.2中Insiders_2的列表有...\n'
+    for usr in Insiders_2:
+        print usr, '\n'
+
+
+    print '..<<开始依据2000个用户的JS_Risk进行排序>>..\n\n'
+    # 定义需要排序的用户与对应的JS_Risk列表
+    Users_JS_Risks = []
+    for line in f_js_risk_lst:
+        line_lst = line.strip('\n').strip(',').split(',')
+        if len(line_lst) != 2:
+            print line_lst, '非规范数据...\n'
+            continue
+        # print line, line_lst, '\n'
+        if line_lst[0] == 'NoMathc':
+            print 'NoMatch...\n\n'
+            continue
+        tmp_0 = []
+        tmp_0.append(line_lst[0])
+        tmp_0.append(float(line_lst[1]))
+        Users_JS_Risks.append(tmp_0)
+    Users_JS_Risks_Sort = sorted(Users_JS_Risks, key=lambda a:a[1], reverse=True)
+
+    f_0 = open('CERT5.2_JS-Risk_Sort-0.1.csv', 'w')
     i = 0
-    while i < turn:
-        new_lst.append(max(a))
-        a.remove(max(a))
-        i += 1
-    return new_lst
-b = Sort_List(a,5)
-print 'b, is ', b, '\n'
-print 'a is ', a, '\n'
+    while i < len(Users_JS_Risks_Sort):
+        if Users_JS_Risks_Sort[i][0] in Insiders_2:
+            print 'Insider_2: ', i, ' : ', Users_JS_Risks_Sort[i][0], ':', Users_JS_Risks_Sort[i][1], '\n'
+            f_0.write(Users_JS_Risks_Sort[i][0])
+            f_0.write(',')
+            f_0.write(str(Users_JS_Risks_Sort[i][1]))
+            f_0.write('\n')
+            i += 1
+        else:
+            f_0.write(Users_JS_Risks_Sort[i][0])
+            f_0.write(',')
+            f_0.write(str(Users_JS_Risks_Sort[i][1]))
+            f_0.write('\n')
+            i += 1
+            continue
+
+    print '..<<Insider_2的JS_Risk分析完毕（0.2版本）>>..\n\n'
+    sys.exit()
