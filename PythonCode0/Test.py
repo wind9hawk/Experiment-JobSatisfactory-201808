@@ -191,3 +191,52 @@ if Flag_2 == True:
 
     print '..<<Insider_2的JS_Risk分析完毕（0.2版本）>>..\n\n'
     sys.exit()
+
+
+
+print '....<<<<本部分分析30个跳槽用户离职邮件关系情况>>>>....\n\n'
+Flag_3 = False
+if Flag_3 == True:
+    # 获得30个跳槽用户的用户列表
+    Insiders_2 = []
+    Insiders_2_Dir = os.path.dirname(sys.path[0]) + '\\' + 'r5.2-2'
+    for usr in os.listdir(Insiders_2_Dir):
+        Insiders_2.append(usr[7:-4])
+    print 'CERT5.2中Insiders_2的列表有...\n'
+    for usr in Insiders_2:
+        print usr, '\n'
+    # 接下来分析其离职邮件联系人
+    f_test_3 = open('CERT5.2_Insiders-2_LeaveContacts_NonSingle.csv', 'w')
+    Dir_Path = sys.path[0] + '\\' + 'CERT5.2_EmailContactFeats-0.2'
+    for file in os.listdir(Dir_Path):
+        # AAB1302Leave_Contacts.csv
+        if file[:7] in Insiders_2:
+            # 说明是跳槽用户
+            # 继续分析其包含离职邮件联系人的文件
+            Flag_Exist_Nonsignle = False
+            if 'Leave_Contacts' in file:
+                f_tmp = open(Dir_Path + '\\' + file, 'r')
+                f_tmp_lst = f_tmp.readlines()
+                f_tmp.close()
+                for line in f_tmp_lst:
+                    line_lst = line.strip('\n').strip(',').split(',')
+                    if len(line_lst) < 2:
+                        f_test_3.write(line_lst[0])
+                        f_test_3.write('\n')
+                        continue
+                    if float(line_lst[1]) > 0 and float(line_lst[1]) < 1:
+                        Flag_Exist_Nonsignle = True
+                        for ele in line_lst:
+                            f_test_3.write(ele)
+                            f_test_3.write(',')
+                        f_test_3.write('\n')
+                    else:
+                        continue
+                if Flag_Exist_Nonsignle == False:
+                    print '不存在正常通信的离职邮件联系人。。', file[:7], '\n'
+            else:
+                continue
+    print '包含30个跳槽用户的离职邮件联系人文件提取完毕...\n'
+    f_test_3.close()
+    print '....<<<<本部分分析30个跳槽用户离职邮件关系情况。。。分析完毕...>>>>....\n\n'
+    sys.exit()

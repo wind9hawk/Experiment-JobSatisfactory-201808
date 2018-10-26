@@ -22,7 +22,8 @@ def Cal_RelationLevel(sr, s1, s2, s3, r1, r2, r3):
     # RL = math.log10(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3))
     # sr = float((s1 - r1) / (s1 + r1))
     # RL = math.log(1 + (1 - abs(sr)) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
-    RL = math.log(1 + math.pow(math.exp(abs(0.5 - sr)), -1) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
+    # RL = math.log(1 + math.pow(math.exp(abs(0.5 - sr)), -1) + (s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3), math.e)
+    RL = math.log(1 + math.pow(math.exp(sr - 0.5), 1) * ((s1 * s2 + r1 * r2) + (s1 * s3 + r1 * r3)), math.e)
     return RL
 
 print '....<<<<CERT5.2用户邮件联系特征数据定位准备开始>>>>....\n\n'
@@ -94,6 +95,9 @@ for file in os.listdir(EmailFeats_Dir)[:]:
             continue
         # 如果邮件名不是企业规范名称，不分析，跳过
         if len(line_lst[0]) != 7:
+            continue
+        if line_lst[1] == '0.0' or line_lst[1] == '1.0':
+            print '非规范邮件，暂时不予考虑...\n'
             continue
         user_contacts.append(line_lst[0])
         tmp_0 = []
