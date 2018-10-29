@@ -145,9 +145,10 @@ print '注意！请输出处理好的数组，返回最优的K值以及对应的
 # SC_pt = B(pt) - A(Pt) / max(A(pt), B(pt))
 # 轮廓系数越接近1越好，越大越好
 
-def Auto_K_Choice(JS_lst):
+def Auto_K_Choice(JS_lst, K_range):
     SC_lst = [] # 轮廓系数列表，保存K值与对应的轮廓系数
-    a = [2,3,4,5,6,7,8,9,10]
+    # a = [2,3,4,5,6,7,8,9,10,11,12]
+    a = range(K_range + 1)[2:]
     for k in a:
         print '现在实验的K值为 ', k, '\n'
         print '每个K值需要实验三次以避免局部最优偏见...\n'
