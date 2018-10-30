@@ -44,7 +44,7 @@ def DBSCAN_Clustering(Data_lst, EPS, MiniSamples):
     return n_clusters_, n_core_, labels, score
 
 # 指定数据源
-f_0 = open('CERT5.2_Big5_LDAP_All_Feats.csv', 'r')
+f_0 = open('CERT5.2_Big5_LDAP_Part1_Feats.csv', 'r')
 f_0_lst = f_0.readlines()
 f_0.close()
 

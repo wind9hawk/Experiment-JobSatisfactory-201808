@@ -36,6 +36,8 @@ from sklearn.preprocessing import scale
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.decomposition import PCA
 import numpy as np
+import sklearn.metrics as skm
+import sklearn.decomposition as skd
 
 # 计算两个点的欧式距离
 def Distance(Pa, Pb):
@@ -159,39 +161,22 @@ def Auto_K_Choice(JS_lst, K_range):
         #print 'PCA降维完成...\n'
         print '..<<在进行KMeans分析前首先进行归一化MinMax>>..\n\n'
         JS_lst = MinMaxScaler().fit_transform(JS_lst)
+        #JS_lst = scale(JS_lst)
+        #JS_lst = skd.PCA().fit_transform(JS_lst)
         SC_tmp = [] # 保存本次K值的三次实验结果，K值与对应的轮廓系数
         i = 0
-        while i < 3: # 同一个K值进行三次K均值聚类
+        while i < 3: # 同一个K值进行10次K均值聚类
             y_pred = KMeans(n_clusters=k).fit(JS_lst).labels_
             print k, 'KMeans单次聚类完成\n'
-            clusters_users = [] #存储k值时每个群簇的用户的特征
-            cls_no = 0 # 代表群簇号（类别号）
-            # 开始统计每个群簇的用户列表
-            while cls_no < k:
-                # print '开始统计每个群簇的用户列表..\n'
-                cluster_users_tmp = []
-                j = 0
-                while j < len(y_pred):
-                    if y_pred[j] == cls_no:
-                        cluster_users_tmp.append(JS_lst[j])
-                        # print '写入群簇类用户数据...\n'
-                        j += 1
-                    else:
-                        j += 1
-                        continue
-                clusters_users.append(cluster_users_tmp)
-                cls_no += 1
-            print k, ' 群簇用户列表统计完毕...\n'
-            # 接下来开始计算此时的轮廓系数
-            SC_value = SC_Clusters(k, clusters_users)
-            # 将本次计算得到的轮廓系数存入一个临时列表，好比较最好的轮廓系数
+            SC_value = skm.silhouette_score(JS_lst, y_pred)
             print i, '完成\n'
             tmp_0 = []
             tmp_0.append(SC_value)
             tmp_0.append(y_pred)
             SC_tmp.append(tmp_0)
+            print k, ':', i, ':', tmp_0[0], '\n'
             i += 1
-            SC_values = [] # 用于存储选中的K-SC值对
+        SC_values = [] # 用于存储选中的K-SC值对
         SC_values.append(k)
         # 修改后的代码需要从[SC1, y_pred1], [SC2, y_pred2], [SC3, y_pred3]中选出最大的SCx，返回对应的y_predx
         sc_tmp = []
@@ -204,7 +189,7 @@ def Auto_K_Choice(JS_lst, K_range):
                 SC_values.append(ele[1])
         #SC_values.append(max(SC_tmp))
         SC_lst.append(SC_values)
-    print '..<<K = [2, 11]的KMeans聚类的轮廓系数计算完毕>>..\n\n'
+    print '..<<K = [2, ', K_range, ' ]的KMeans聚类的轮廓系数计算完毕>>..\n\n'
     print '各个K值的K均值聚类的最优轮廓系数为： \n'
     for line in SC_lst:
         print 'SC_lst is ', '\n'

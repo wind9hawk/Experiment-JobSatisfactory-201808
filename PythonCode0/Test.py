@@ -138,7 +138,7 @@ if Flag_1 == True:
 
 # 本测试代码用于验证0.2版本的JS_Risk的准确度
 # 通过对计算得到的JS_Risk进行排序，从而得到最高的用户，显示出所有场景二的30个用户所处的位置
-Flag_2 = True
+Flag_2 = False
 if Flag_2 == True:
     f_js_risk = open('CERT5.2_JS-Risks-Leave-0.2.csv', 'r')
     f_js_risk_lst = f_js_risk.readlines()
@@ -240,3 +240,38 @@ if Flag_3 == True:
     f_test_3.close()
     print '....<<<<本部分分析30个跳槽用户离职邮件关系情况。。。分析完毕...>>>>....\n\n'
     sys.exit()
+
+
+
+print '简单实验分析CERT5.2中场景二攻击者所属事业部...\n\n'
+Insiders_2_Path= os.path.dirname(sys.path[0]) + '\\' + 'r5.2-2'
+Insiders_2_lst = []
+for file in os.listdir(Insiders_2_Path):
+    Insiders_2_lst.append(file[7:-4])
+
+# 读取LDAP数据
+f_LDAP = open(os.path.dirname(Insiders_2_Path) + '\\' + 'LDAP' + '\\' + '2009-12.csv', 'r')
+f_LDAP_lst = f_LDAP.readlines()
+f_LDAP.close()
+
+Business_1 = []
+Business_2 = []
+for line in f_LDAP_lst:
+    line_lst = line.strip('\n').strip(',').split(',')
+    if line_lst[1] == 'user_id':
+        continue
+    # employee_name,user_id,email,role,projects,business_unit,functional_unit,department,team,supervisor
+    if line_lst[1] in Insiders_2_lst:
+        if line_lst[5] == '1 - Executive':
+            Business_1.append(line_lst[1])
+        if line_lst[5] == '2 - Executive':
+            Business_2.append(line_lst[1])
+print '..<<场景二所属事业部统计完毕...\n>>..\n\n'
+
+print '属于第一事业部的攻击二有： \t', len(Business_1), '\n'
+for ele in Business_1:
+    print ele, '\n'
+
+print '属于第二事业部的攻击二有： \t', len(Business_2), '\n'
+for ele in Business_2:
+    print ele, '\n'
