@@ -70,6 +70,8 @@ for user in os.listdir(UsersDir)[:]:
         os.makedirs(EmailDir)
     if 'feat' in user:
         continue
+    if 'BYO1846' not in user:
+        continue
     #f_eml = open(EmailDir + '\\' + user + '.csv', 'w') # 用来存储user的所有邮件通信记录
     f_eml = open(UsersDir + '\\' + user, 'r') # 用来存储该用户的通讯特征
     f_eml_lst = f_eml.readlines()

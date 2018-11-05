@@ -37,7 +37,7 @@ print '所有需要分析的LDAP文件有： ', fileMonth, '\n'
 f = open(fileMonth[0], 'r')
 f_lst = f.readlines()
 f.close()
-f_w = open('CERT5.2-Leave-Users.csv', 'w') # 定义一个记录离职员工的文件，注意离职leave与解雇laid off不同
+f_w = open('CERT5.2-Leave-Users_0.6.csv', 'w') # 定义一个记录离职员工的文件，注意离职leave与解雇laid off不同
 f_w.write('Laid off Users in CERT5.2 from 2009-12 to 2011-05\n')
 for usr in f_lst:
     line = usr.strip('\n').strip(',').split(',')
@@ -66,7 +66,22 @@ while MonthCnt <= len(MonthList) - 1:
             # 该用户离职
             laid_ldap = []
             laid_ldap.append(user)
-            laid_ldap.append(MonthList[MonthCnt])
+            # laid_ldap.append(MonthList[MonthCnt])
+            # 为了将离职日期具体到天，这里需要根据日期进一步确定离职的天
+            # 开始从邮件中确定该用户最后离职的时间
+            Email_Dir = r'G:\GitHub\Essay-Experiments\CERT5.2-Results\CERT5.2-Users-EmailRecords'
+            for file in os.listdir(Email_Dir):
+                # like: ADH1016.csv
+                if user in file and 'feat' not in file:
+                    f_0 = open(Email_Dir + '\\' + file, 'r')
+                    f_0_lst = f_0.readlines()
+                    f_0.close()
+                    line_0_lst = f_0_lst[-1].strip('\n').strip(',').split(',')
+                    # time like 02/09/2010 15:58:14
+                    year_0 = line_0_lst[0][6:10]
+                    month_0 = line_0_lst[0][0:2]
+                    day_0 = line_0_lst[0][3:5]
+                    laid_ldap.append(year_0 + '-' + month_0 + '-' + day_0)
             laid_ldap.append(Users_LDAP[Users_CERT.index(user)])
             Users_LaidOff.append(laid_ldap)
             Users_LDAP.remove(Users_LDAP[Users_CERT.index(user)])

@@ -28,7 +28,7 @@ print '分析CERT5.2所有用户与离职员工的关联...\n'
 
 
 print '首先提取离职的员工列表...\n'
-f = open('CERT5.2-Leave-Users.csv', 'r')
+f = open('CERT5.2_Leave_Users_0.6.csv', 'r')
 # Laid off Users in CERT5.2 from 2009-12 to 2011-05
 # RMB1821,2010-02,Rose Maisie Blackwell,RMB1821,Rose.Maisie.Blackwell@dtaa.com,Salesman,,1 - Executive,5 - SalesAndMarketing,2 - Sales,5 - RegionalSales,Donna Erin Black
 f_lst = f.readlines()

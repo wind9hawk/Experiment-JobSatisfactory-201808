@@ -5,6 +5,7 @@
 import numpy as np
 import os,sys
 
+
 # 测试1
 # 查看关系特征聚类后得到的群簇中，离职用户的个数以及比例；
 f_Leave_relations = open(sys.path[0] + '\\' + 'CERT5.2-Leave-Relationship.csv', 'r')
