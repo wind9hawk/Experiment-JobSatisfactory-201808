@@ -39,6 +39,11 @@ def GetDate(date):
     day = date[3:5]
     return year + '-' + month + '-' + day
 
+# 定义一个函数用来计算用户发送/收到邮件的通信比
+def Cal_EmailRatio(X, Y):
+    ER_0 = float(X - Y)
+    ER_1 = float(X + Y)
+    return ER_0 / ER_1
 
 print '......<<<<<<CERT5.2用户邮件通讯9元特征提取开始>>>>>>......\n\n'
 
@@ -60,7 +65,11 @@ print Email2User_Dic, '\n'
 
 print '....<<<<数据源确定完毕，开始循环分析每个用户的邮件特征>>>>....\n\n'
 
-for file in os.listdir(Email_Dir)[:2]:
+# 定义一个存放所有用户邮件通讯特征的变量
+
+
+for file in os.listdir(Email_Dir)[:]:
+    Email_Feats_User = []
     # 得到了原始数据目录下所有的文件列表
     # 只读取原始数据文件，like: AAB1302.csv
     if 'feat' in file:
@@ -86,7 +95,7 @@ for file in os.listdir(Email_Dir)[:2]:
     f_email_lst = f_email.readlines()
     f_email.close()
 
-    for line in f_email_lst[:53]:
+    for line in f_email_lst[:]:
         line_lst = line.strip('\n').strip(',').split(',')
         # 获取当前邮件时间
         date = GetDate(line_lst[0])
@@ -110,7 +119,7 @@ for file in os.listdir(Email_Dir)[:2]:
                     cnt_send = 1.0
                     send_days = []
                     send_days.append(date)
-                    cnt_size = line_lst[8]
+                    cnt_size = float(line_lst[8])
                     if len(line_lst) == 10:
                         cnt_attach = len(line_lst[9].split(';'))
                     else:
@@ -131,7 +140,7 @@ for file in os.listdir(Email_Dir)[:2]:
                     send_feat[index_0][0] += 1.0
                     if date not in send_feat[index_0][1]:
                         send_feat[index_0][1].append(date)
-                    send_feat[index_0][2] += line_lst[8]
+                    send_feat[index_0][2] += float(line_lst[8])
                     if len(line_lst) == 10:
                         send_feat[index_0][3] += len(line_lst[9].split(';'))
                     else:
@@ -139,7 +148,180 @@ for file in os.listdir(Email_Dir)[:2]:
                     print '再次联系用户', user_id, '此时特征为： ', send_feat[index_0], '\n\n'
         else:
             if line_lst[7] == 'Receive':
+                # # # 当前数据格式：date,user,pc,to,cc,bcc,from,activity,size,attachments
                 # 这是一封收到的邮件
-                continue
+                # 提取用户ID
+                # 需要注意
+                # send行为时目标用户一定在line[6]字段中
+                # receive行为记录中包括目标用户与其他用户都在receiver的情况，即只分析收件人为目标用户的情况
+                recv_user_id = []
+                for ele in line_lst[3].split(';'):
+                    if '@dtaa.com' not in ele:
+                        recv_user_id.append(ele)
+                    else:
+                        recv_user_id.append(Email2User_Dic[ele])
+                if target_user not in recv_user_id:
+                    # 默认时邮件名，需要转换成user_id才能和target_user比较
+                    print target_user, '不存在收件人中，不考虑\n'
+                    continue
+                user_id_lst = []
+                for ele in line_lst[6].split(';'):
+                    if '@dtaa.com' not in ele:
+                        # 非雇员
+                        user_id_lst.append(ele)
+                    else:
+                        user_id_lst.append(Email2User_Dic[ele])
+                # 这是一封接收邮件
+                # 对方给自己发过邮件吗？
+                print '发件人列表是： ', user_id_lst, '\n'
+                print 'line is ',line_lst, '\n'
+                for user_id in user_id_lst:
+                    if user_id not in recv_users:
+                        # 第一次收到该人邮件
+                        # 初始化对应于该收件人的邮件特征
+                        recv_users.append(user_id)
+                        cnt_recv = 1.0
+                        recv_days = []
+                        recv_days.append(date)
+                        print 'recv_days is ', recv_days, '\n'
+                        # sys.exit()
+                        cnt_size = float(line_lst[8])
+                        if len(line_lst) == 10:
+                            cnt_attach = len(line_lst[9].split(';'))
+                        else:
+                            cnt_attach = 0.0
+                        recv_feat_0 = []
+                        recv_feat_0.append(cnt_recv)
+                        recv_feat_0.append(recv_days)
+                        recv_feat_0.append(cnt_size)
+                        recv_feat_0.append(cnt_attach)
+                        recv_feat.append(recv_feat_0)
+                        print '第一次收到用户', user_id, '的来新，初始化特征为： ', recv_feat_0, '\n\n'
+                        # sys.exit()
+                        # sys.exit() # 验证通过
+                    else:
+                        # 已经不是第一次联系该用户了
+                        # 需要定位后，更新原始特征数据即可
+                        # # 当前数据格式：date,user,pc,to,cc,bcc,from,activity,size,attachments
+                        index_0 = recv_users.index(user_id)
+                        print 'user_id is ', user_id, '\n'
+                        # print 'index_0' is index_0, '\n'
+                        recv_feat[index_0][0] += 1.0
+                        if date not in recv_feat[index_0][1]:
+                            recv_feat[index_0][1].append(date)
+                        recv_feat[index_0][2] += float(line_lst[8])
+                        if len(line_lst) == 10:
+                            recv_feat[index_0][3] += len(line_lst[9].split(';'))
+                        else:
+                            recv_feat[index_0][3] += 0.0
+                        print '再次收到用户', user_id, '的来信，此时特征为： ', recv_feat[index_0], '\n\n'
+                        #sys.exit()
+
+
+    # target_user的邮件收件人与发件人关系特征已经统计完毕，接下来需要拼接生成需要的特征
+    # 依次从send_users，recv_users中交叉匹配，以确定最终的用户特征
+    print '开始组合形成', target_user, ' 的邮件行为特征...\n\n'
+    # 首先从send_users中匹配
+    # 特征构建时，将发送/接收天数的分隔符转换为';'
+    for sender in send_users:
+        if sender in recv_users:
+            # 说明该用户同时具有发送与接收邮件
+            # 计算ER比
+            # 确定用户对应的发送/接收特征
+            send_feat_1 = send_feat[send_users.index(sender)]
+            recv_feat_1 = recv_feat[recv_users.index(sender)]
+            print 'send_feat_1 is ', send_feat_1, '\n'
+            print 'recv_feat_1 is ', recv_feat_1, '\n'
+            # sys.exit()
+            email_feat = []
+            er = Cal_EmailRatio(send_feat_1[0], recv_feat_1[0])
+            # user_id, er, cnt_send, cnt_send_day, cnt_size, cnt_attach, cnt_recv, cnt_recv_day, cnt_size, cnt_attach
+            email_feat.append(sender)
+            email_feat.append(er)
+            for ele in send_feat_1:
+                email_feat.append(ele)
+            for ele in recv_feat_1:
+                email_feat.append(ele)
+            print 'email_feat[7] is ', email_feat[7], '\n'
+            print 'email_feat is ', email_feat, '\n'
+            # sys.exit()
+            email_feat[4] = email_feat[4] / email_feat[2]
+            email_feat[8] = email_feat[8] / email_feat[6]
+
+            email_feat[3] = str(email_feat[3]).replace(',', ';').replace('\'', '')
+            email_feat[7] = str(email_feat[7]).replace(',', ';').replace('\'', '')
+            # Email_Feats_User.append(email_feat)
+            print '同时发送接收的邮件联系人', sender, '特征提取完毕, 其邮件特征为：', email_feat, '\n'
+            Email_Feats_User.append(email_feat)
+            # print '0:', Email_Feats_User, '\n'
+            # sys.exit()
+        # 再来构造仅发送用户的邮件特征
+        else:
+            send_feat_1 = send_feat[send_users.index(sender)]
+            # recv_feat_1 = recv_feat[recv_users.index(sender)]
+            recv_feat_1 = [0,[],0,0]
+            email_feat = []
+            er = Cal_EmailRatio(send_feat_1[0], recv_feat_1[0])
+            email_feat.append(sender)
+            email_feat.append(er)
+            for ele in send_feat_1:
+                email_feat.append(ele)
+            for ele in recv_feat_1:
+                email_feat.append(ele)
+            email_feat[4] = email_feat[4] / email_feat[2]
+            # email_feat[7] = email_feat[8] / email_feat[6]
+            email_feat[3] = str(email_feat[3]).replace(',', ';').replace('\'', '')
+            email_feat[7] = str(email_feat[7]).replace(',', ';').replace('\'', '')
+            Email_Feats_User.append(email_feat)
+            print '仅发送的邮件联系人', sender, '特征提取完毕, 其邮件特征为：', email_feat, '\n'
+            # print '1:', Email_Feats_User, '\n'
+    # 最后来考虑仅接收的联系人
+    for recver in recv_users:
+        if recver in send_users: # 上面已经分析过
+            print '已经分析过同时收发的用户', recver, '跳过...\n\n'
+            continue
+        else:
+            # 仅接收的用户
+            # send_feat_1 = send_feat[send_users.index(sender)]
+            recv_feat_1 = recv_feat[recv_users.index(recver)]
+            send_feat_1 = [0, [], 0, 0]
+            email_feat = []
+            er = Cal_EmailRatio(send_feat_1[0], recv_feat_1[0])
+            email_feat.append(recver)
+            email_feat.append(er)
+            for ele in send_feat_1:
+                email_feat.append(ele)
+            for ele in recv_feat_1:
+                email_feat.append(ele)
+            # email_feat[4] = email_feat[4] / email_feat[2]
+            email_feat[8] = email_feat[8] / email_feat[6]
+            email_feat[3] = str(email_feat[3]).replace(',', ';').replace('\'', '')
+            email_feat[7] = str(email_feat[7]).replace(',', ';').replace('\'', '')
+            Email_Feats_User.append(email_feat)
+            print '仅发送的邮件联系人', recver, '特征提取完毕, 其邮件特征为：', email_feat, '\n'
+    print '目标用户', target_user, '的验证用例显示： 第一个联系人数据： ', '\n'
+    print Email_Feats_User[0], '\n'
+    print Email_Feats_User[1], '\n'
+    # sys.exit()
+
+
+    # 验证通过
+    print '....<<<<将得到的用户邮件特征写入到文件>>>>....\n\n'
+    f_0 = open(Email_Feats_Dir + '\\' + target_user + '_email_feats.csv', 'w')
+    for line in Email_Feats_User:
+        for ele in line:
+            f_0.write(str(ele))
+            f_0.write(',')
+        f_0.write(str(len(line[3].split(';'))))
+        f_0.write(',')
+        f_0.write(str(len(line[7].split(';'))))
+        f_0.write('\n')
+    f_0.close()
+    print '....<<<<', target_user, '邮件联系特征文件写入完毕....>>>>\n\n'
+
+
+
+
+
 
 
