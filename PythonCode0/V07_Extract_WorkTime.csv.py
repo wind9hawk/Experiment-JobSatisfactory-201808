@@ -141,6 +141,7 @@ for user in os.listdir(Logon_Dir)[:]:
             f_WorkTime.write(',')
             f_WorkTime.write('WorkOn:')
             f_WorkTime.write(str(WorkOn_Time))
+            f_WorkTime.write(',')
             f_WorkTime.write('WorkOff:')
             f_WorkTime.write(str(WorkOff_Time))
             f_WorkTime.write('\n')
