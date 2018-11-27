@@ -311,7 +311,9 @@ def Cal_RLV(rlf_process_month):
         rlv_dis_os = line[1]
         rlv_edays = line[2]
         rlv_einfo = Cal_EmailInfo(line[3:])
-        rlv_line = math.log(math.e + rlv_dis_ocean + rlv_dis_os + rlv_edays + rlv_einfo, math.e)
+        # rlv_line = math.log(math.e + rlv_dis_ocean + rlv_dis_os + rlv_edays + rlv_einfo, math.e)
+        # 上述计算rlv_line的公式没有考虑dis_ocean与dis_ocean的反向关系
+        rlv_line = math.log(math.e + pow(pow(math.e, rlv_dis_ocean), -1) + pow(pow(math.e, rlv_dis_os), -1) + rlv_edays + rlv_einfo, math.e)
         rlv_lst.append(rlv_line)
     #print 'RLV 数值列表统计计算完毕...\n'
     #for i in range(5):
@@ -371,6 +373,9 @@ def Run_Predictor(RL_Feat_Path, Dst_Dir, Risk_Ratio, cert_users, month, month_ls
             rlf_process_tmp.append(float(line_lst[7]))
             rlf_process_tmp.append(float(line_lst[12]))
             rlf_process_tmp.append(float(line_lst[-2]) + float(line_lst[-1]))
+            # AAB1302,WMH1300,13.9283882772,0.0,8.0,0.0,4.0,40840.75,0.0,4.0,2856906.75,8.0,
+            # Process特征格式
+            # user_id, leave_id, dis_ocean, dis_os, email_days, email_feat
             tmp_1 = []
             for ele in line_lst[13:20]:
                 tmp_1.append(float(ele))

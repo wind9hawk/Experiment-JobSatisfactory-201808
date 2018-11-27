@@ -108,7 +108,7 @@ f.write(str(len(LDAP_Users)))
 f.write('\n')
 i = 0
 while i < len(LDAP_Users):
-    f.write(str(LDAP[i]))
+    f.write(str(LDAP[i]).replace(',', ':'))
     f.write(',')
     for user in LDAP_Users[i]:
         f.write(user)

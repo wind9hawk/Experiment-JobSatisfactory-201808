@@ -149,7 +149,7 @@ if Flag_2:
     sys.exit()
 
 
-Flag_3 = True
+Flag_3 = False
 if Flag_3:
     Dst_Dir = sys.path[0] + '\\' + 'JS-Risks_Analyze-0.7'
     month_lst  = ['2010-07', '2010-08', '2010-09', '2010-10', '2010-11', '2010-12', '2011-01', '2011-02', '2011-03', '2011-04', '2011-05']
@@ -215,5 +215,4 @@ if Flag_3:
                 f_hr_jsr_w.write(',')
             f_hr_jsr_w.write('\n')
         f_hr_jsr_w.close()
-
 

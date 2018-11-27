@@ -2,13 +2,19 @@
 # 本模块主要在进行检查反馈模块前，首先生成2010-03：2011-05的各个月份在职用户的出勤情况
 # 由于CERT5.2是按时间、用户的顺序分别存放用户的Logon登录数据的，因此，我们一次遍历，生成所有月份的用户登录信息
 # CERT5.2原始logon.csv数据，严格按照时间排序，即先日期，然后是登录登出行为的具体时间
-# 此外，本修正的后的程序，不仅依据Team时间计算LED，还在feat中记录了同时迟到与早退的天数，以便于后续分析
 
 
 # 基本算法：
 # 1. 确定数据源与数据输出目录
 # 2. 读入固定上下班时间
 # 3. 按照月份开始以此读入、写入、关闭登录登出数据，统计迟到与早退的天数以及该月工作天数；
+
+
+# 更新说明
+# 本模块使用公开固定的上下班时间作为判断上班迟到与下班早退的依据
+# 早上上班时间9：00
+# 下午下班时间17：00
+# 此外，由于之前的Check_Early_Late已经提取存储了每月的用户登录数据，因此本模块不再处理本部分功能
 
 import os,sys
 
@@ -77,26 +83,26 @@ def Extract_Month_Logon(logon_path, dst_dir):
 
 # 遇到了一个新月份的登录数据
 
-def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
+def Extract_Early_Late_Feat(analyze_month_lst, dst_dir, workon_time, workoff_time):
     # 参数说明
     # analyze_month_lst: CERT5.2文件原始登录登出文件路径
     # work_time_path：自己统计的2010-01月份用户固定上下班时间
     # dst_dir：实验七的结果目录（..\PythonCode0\JS-Risks_Analyze-0.7）
     print '......<<<<<<实验系列七的用户迟到早退分析模块>>>>>>......\n\n'
-    f_work_time = open(work_time_path, 'r')
-    f_work_time_lst = f_work_time.readlines()
-    f_work_time.close()
+    #f_work_time = open(work_time_path, 'r')
+    #f_work_time_lst = f_work_time.readlines()
+    #f_work_time.close()
 
-    Work_time_lst = []
-    for line in f_work_time_lst:
-        line_lst = line.strip('\n').strip(',').split(',')
-        # WorkOn Time文件数据格式
-        # AAB1302,WorkOn:9.0,WorkOff:19.0
-        tmp_1 = []
-        for ele in line_lst:
-            tmp_1.append(ele.split(':')[-1])
-        Work_time_lst.append(tmp_1)
-    print 'Work_Time初始化完毕..\n\n'
+    #Work_time_lst = []
+    #for line in f_work_time_lst:
+    #    line_lst = line.strip('\n').strip(',').split(',')
+    #    # WorkOn Time文件数据格式
+    #    # AAB1302,WorkOn:9.0,WorkOff:19.0
+    #    tmp_1 = []
+    #    for ele in line_lst:
+    #        tmp_1.append(ele.split(':')[-1])
+    #    Work_time_lst.append(tmp_1)
+    #print 'Work_Time初始化完毕..\n\n'
 
     print '....<<<<初始化数据结构>>>>....\n\n'
     # 函数内部的全局变量，首字母大写，如User_name_lst
@@ -116,11 +122,11 @@ def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
     # 错误！
     # 由于需要考虑一天中多次登录与登出行为，我们仅关注一天中最早的登入与最晚的登出，因此
     # 补充一个当月所有天的列表，一天一天的分析用户当天所有登录登出行为
-    # 若当天缺失了logon/logoff中的一项，则作为脏数据跳过，不纳入分析
+    # 若当天缺失了logon/logoff中的一项，作为脏数据跳过，不纳入单项分析
     for month in analyze_month_lst:
         file_dir = dst_dir + '\\' + month
         for file in os.listdir(file_dir):
-            if 'logon_data' in file:
+            if 'logon_data' in file and month in file:
                 filePath = file_dir + '\\' + file
                 break
             else:
@@ -147,7 +153,24 @@ def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
                 j += 1
                 continue
         print '当月登录用户列表统计完成...\n'
-        f_early_late_feat = open(file_dir + '\\' + month + '_early_late_team_feats.csv', 'w')
+        f_early_late_feat = open(file_dir + '\\' + month + '_early_late_feats_standard.csv', 'w')
+        # 格式字段输入
+        f_early_late_feat.write('user_id')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('work_on')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('work_off')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('cnt_late_days')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('cnt_early_days')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('late_ratio')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('early_ratio')
+        f_early_late_feat.write(',')
+        f_early_late_feat.write('cnt_work_days')
+        f_early_late_feat.write('\n')
         for user in logon_users[:]:
             f_early_late_feat.write(user)
             f_early_late_feat.write(',')
@@ -155,19 +178,19 @@ def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
             user_logon_lst = []
             user_logoff_lst = []
             # 定义该用户当月的出勤特征
-            user_workon_feat = [0.0 for i in range(5)]
+            user_workon_feat = [0.0 for i in range(7)]
             # 提取该用户的正常上下班时间
-            j = 0
-            while j < len(Work_time_lst):
-                if Work_time_lst[j][0] == user:
-                    user_on_time = float(Work_time_lst[j][1])
-                    user_off_time = float(Work_time_lst[j][2])
-                    break
-                else:
-                    j += 1
-                    continue
-            user_workon_feat[0] = user_on_time
-            user_workon_feat[1] = user_off_time
+            #j = 0  # 同名循环变量必须在使用前首先初始化
+            #while j < len(Work_time_lst):
+            #    if Work_time_lst[j][0] == user:
+            #        user_on_time = float(Work_time_lst[j][1])
+            #        user_off_time = float(Work_time_lst[j][2])
+            #        break
+            #    else:
+            #        j += 1
+            #        continue
+            user_workon_feat[0] = workon_time
+            user_workon_feat[1] = workoff_time
             # 开始分析当月登录数据
             user_workdays = []
             j = 0
@@ -175,6 +198,7 @@ def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
                 # 05/01/2011 01:59:02,AHN0681,PC-9308,Logon,
                 line = f_logon_lst[j].strip('\n').strip(',').split(',')
                 if line[1] == user:
+                    # 提取的是2011-05-01
                     date = line[0][6:10] + '-' + line[0][:2] + '-' + line[0][3:5]
                     if date not in user_workdays:
                         user_workdays.append(date)
@@ -183,11 +207,9 @@ def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
                 else:
                     j += 1
                     continue
+            # date变量存储着本月最后一个工作日的日期
             print user, date, '工作日workdays统计完毕...\n'
 
-            # 定义保存该用户当月缺勤行为天的列表
-            user_late_days = []
-            user_early_days = []
             # 即提取了该月用户正常上下班的时间
             # 也有了该月用户工作日期
             # 下面则依据该用户、工作日建立登录行为列表
@@ -230,46 +252,28 @@ def Extract_Early_Late_Feat(analyze_month_lst, dst_dir,work_time_path):
                 # sys.exit()
                 #
                 # 然后开始比较用户当天是否迟到早退
-                if user_early_logon > user_on_time:
+                if user_early_logon > workon_time:
                     # 说明迟到
                     user_workon_feat[2] += 1.0
-                    if day not in user_late_days:
-                        user_late_days.append(day)
                 else:
                     user_workon_feat[2] += 0
-                if user_late_logoff < user_off_time:
+                if user_late_logoff < workoff_time:
                     user_workon_feat[3] += 1
-                    if day not in user_early_days:
-                        user_early_days.append(day)
                 else:
                     user_workon_feat[3] += 0.0
+            # 补充上计算当月迟到与早退的比例
 
-            user_workon_feat[4] = len(user_workdays)
-            users_logon_feat_lst.append(user_workon_feat)
+            user_workon_feat[4] = user_workon_feat[2] / float(len(user_workdays))
+            user_workon_feat[5] = user_workon_feat[3] / float(len(user_workdays))
+            user_workon_feat[6] = len(user_workdays)
+            # users_logon_feat_lst.append(user_workon_feat)
 
-            # 需要提取同一天既有迟到又有早退的天
-            user_le_days = []
-            for day_l in user_late_days:
-                if day_l in user_early_days and day_l not in user_le_days:
-                    user_le_days.append(day_l)
-            for day_e in user_early_days:
-                if day_e in user_late_days and day_e not in user_le_days:
-                    user_le_days.append(day_e)
-
-            print '将结果写入...\n'
+            print user, month, '出勤结果写入...\n'
             for ele in user_workon_feat:
                 f_early_late_feat.write(str(ele))
                 f_early_late_feat.write(',')
-            if len(user_le_days) == 0:
-                f_early_late_feat.write(str(-1))
-                f_early_late_feat.write('\n')
-            else:
-                f_early_late_feat.write(str(len(user_le_days)))
-                f_early_late_feat.write(',')
-                for day_0 in user_le_days:
-                    f_early_late_feat.write(str(day_0))
-                    f_early_late_feat.write(',')
-                f_early_late_feat.write('\n')
+            f_early_late_feat.write('\n')
+            # break
         f_early_late_feat.close()
 
     return 1
@@ -283,11 +287,8 @@ print '......<<<<<<<CERT5.2用户按月出勤情况分析模块>>>>>>.......\n\n
 print '....<<<<数据源确定>>>>....\n\n'
 f_Logon_Path = r'G:\r5.2\logon.csv'
 Dst_Dir = sys.path[0] + '\\' + 'JS-Risks_Analyze-0.7'
-Work_Time_Path = Dst_Dir + '\\' + 'V07_CERT5.2_Users_WorkOn-Off_Time_Team.csv'
+Work_Time_Path = Dst_Dir + '\\' + 'V07_CERT5.2_Users_WorkOn-Off_Time.csv'
 
-
-#print '....<<<<第一步：提取、存储月份用户登录数据>>>>....\n\n'
-#Analyze_Month = Extract_Month_Logon(f_Logon_Path, Dst_Dir)
 # 生成要分析的月份列表
 Analyze_Month = []
 for month in os.listdir(Dst_Dir):
@@ -300,7 +301,14 @@ for month in os.listdir(Dst_Dir):
             Analyze_Month.append(month)
             continue
 
+#print '....<<<<第一步：提取、存储月份用户登录数据>>>>....\n\n'
+#Analyze_Month = Extract_Month_Logon(f_Logon_Path, Dst_Dir)
+
+print '..<<指定标准的美国上下班时间：9:00 -- 17:00>>..\n'
+WorkOn_Time = 9.0
+WorkOff_Time = 17.0
+
 # 然后开始提取登录登出特征
-Return_Value = Extract_Early_Late_Feat(Analyze_Month[:], Dst_Dir,Work_Time_Path)
+Return_Value = Extract_Early_Late_Feat(Analyze_Month[:], Dst_Dir, WorkOn_Time, WorkOff_Time)
 
 print '....<<<<CERT5.2用户迟到早退信息提取处理完毕>>>>....\n\n'

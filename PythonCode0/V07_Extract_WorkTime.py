@@ -25,7 +25,10 @@ def Extract_WorkTime(user, f_logon_lst):
     # 上班时间窗口从早上6点开始，到早上9点半结束，一共5个时间窗口，分别是：
     # 6：01-6：30；6：31-7：00；7：01-7：30；7：31-8：00；8：01-8：30；8：31-9：00；9：01-9：30
     # 下班时间窗口分别为
-    # 下午16：00-16：29； 16：30-16：59；17：00-17：29；17：30-17：59；18：00-18：29；18：30-18：59；19：00-19：29
+    # 下午14：00：14：29， 14：30-14：59， 16：00-16：29； 16：30-16：59；17：00-17：29；17：30-17：59；18：00-18：29；18：30-18：59；19：00-19：29
+    # 19：30-19：59， 20：00-20：29， 20：30-20：59， 21：00-21：29， 21：30-21：59， 22：00-22：29， 22：30-22：59
+    # 实际数据有用户的下班时间早于16：00，原有数据无法分析
+    # 故需要进一步提前下班的时间窗口
     WorkOn = []
     i = 0
     while i < 7:
@@ -38,8 +41,8 @@ def Extract_WorkTime(user, f_logon_lst):
     print 'WorkOn 初始化为： ', WorkOn, '\n'
     WorkOff = []
     i = 0
-    while i < 7:
-        start = 16 + 0.5 * i
+    while i < 19:
+        start = 14 + 0.5 * i
         tmp_0 = []
         tmp_0.append(start)
         tmp_0.append(0.0)
@@ -86,7 +89,7 @@ def Extract_WorkTime(user, f_logon_lst):
     # sys.exit()
     return WorkOn, WorkOff
 
-# 定义一个函数从先期得到的WorkOn/WorkOff中筛选出次数最多的时间
+# 定义一个函数从先期得到的WorkOn/WorkOff中筛选出次数最多的时间窗口
 def Decide_WorkOnOff_Time(WorkOn, WorkOff):
     WorkOn_Order = sorted(WorkOn, key=lambda t:t[1], reverse=True)
     WorkOff_Order = sorted(WorkOff, key=lambda t:t[1], reverse=True)
