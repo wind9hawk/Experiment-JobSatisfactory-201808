@@ -81,13 +81,14 @@ def Extract_LDAP(user, f_ldap_lst):
     return user_ldap
 
 
-def Build_Predictor(cert_users, f_ocean_lst, ldap_path, emails_path, f_leave_month_lst, dst_dir, month):
+def Build_Predictor(cert_users, f_ocean_lst, ldap_path, emails_path, f_leave_month_lst, dst_dir, month, have_left_users_month_lst):
     # 参数说明
     # cert_users: 全局变量 CERT52_Users，其中提出了CEO【AEH0001 】
     # OCEAN分数文件行：f_ocean_lst
     # 当前月份LDAP文件路径列表：ldap_path，第一个是Dir\2009-12.csv
     # 所有用户所有月份的邮件记录文件路径列表，可以用user_id作为检测关键字：emails_path
-    # 当月离职用户文件行：f_leave_month_lst
+    # 截止到当月已经离职的用户列表，这些用户不需要计算当月的rlv_feat：Have_Left_Users_Month_lst
+    # data like: RMB1821 2010-02-09 在  2010-03 前已经离职，不考虑...
     # 当前程序的结果输出目录，对于预测器而言，输出结果在本月，而检验器的输出在下一个月
 
     # 返回值为当月所有CERT52用户的Relationship_Level值列表
@@ -106,7 +107,7 @@ def Build_Predictor(cert_users, f_ocean_lst, ldap_path, emails_path, f_leave_mon
 
     # 定义一个存储所有用户的leave_contact_feat是大文件
     print month, '....<<<<建立该月的RLF文件>>>>....\n\n'
-    f_users_rl = open(dst_dir + '\\' + month + '_CERT5.2_Users_RL_Feats.csv', 'w')
+    f_users_rl = open(dst_dir + '\\' + month + '_CERT5.2_Users_RL_Feats_1.csv', 'w')
     # 新的格式：
     # user_id, leave_contact_user, rl-feat
     f_users_rl.write('user_id')
@@ -172,7 +173,10 @@ def Build_Predictor(cert_users, f_ocean_lst, ldap_path, emails_path, f_leave_mon
             # RMB1821,2010-02-09,Rose Maisie Blackwell,RMB1821,Rose.Maisie.Blackwell@dtaa.com,Salesman,,1 - Executive,5 - SalesAndMarketing,2 - Sales,5 - RegionalSales,Donna Erin Black,
             leave_users_month.append(line_lst[0])
         # 生成用户该月与离职联系人的邮件通讯特征
-        user_email_feat = V07_Email_Filter_Feats.Extract_Email_Feat(user, leave_users_month, emails_path, dst_dir, month)
+        if user in have_left_users_month_lst:
+            print user, month, '已经离职：...\n'
+            continue
+        user_email_feat = V07_Email_Filter_Feats.Extract_Email_Feat(user, leave_users_month, emails_path, dst_dir, month, have_left_users_month_lst)
         # 返回的离职邮件联系人特征数据格式为列表：
         # [[WMH1300,1.0,2.0,[2010-01-04; 2010-01-30],26533.5,0.0,0,[],0,0,2,1], ...]
 
@@ -297,6 +301,8 @@ def Cal_RLV(rlf_process_month):
     #print 'rlf_process_month is :\n'
     #for i in range(len(rlf_process_month)):
     #    print i, ':', rlf_process_month[i], '\n'
+    # 中间过程在进一步代入公式计算时，全部进行了MinMax归一化
+    # 否则，由于特征量纲的不同，导致无法直接在公式中计算
     rlf_minmax = skp.MinMaxScaler().fit_transform(rlf_array)
 
     # 归一化后顺便计算出各个行RLF的RLV
@@ -391,7 +397,7 @@ def Run_Predictor(RL_Feat_Path, Dst_Dir, Risk_Ratio, cert_users, month, month_ls
     #    print i, rlf_process_month[i], '\n'
     # 中间结果需要保存
     # print 'rlf_process文件写入路径为：', Dst_Dir + '\\' + 'RLF_Process.csv', '\n'
-    f_rlf_process = open(Dst_Dir + '\\' + 'RLF_Process.csv', 'w')
+    f_rlf_process = open(Dst_Dir + '\\' + 'RLF_Process_1.csv', 'w')
     j = 0
     while j < len(cert_user_leave_index):
         # print 'rlf_process写入第', j, '行..\n'
@@ -455,11 +461,11 @@ def Run_Predictor(RL_Feat_Path, Dst_Dir, Risk_Ratio, cert_users, month, month_ls
     # 开始输出高危用户列表
     high_risk_lst = []
     # 保存文件
-    f_hr = open(Dst_Dir + '\\' + 'Next_Month_HighRisk.csv', 'w')
+    f_hr = open(Dst_Dir + '\\' + 'Next_Month_HighRisk_1.csv', 'w')
     f_hr.write('Next Month High Risk Users from low Job Statisfactory\n')
 
     # 保存一个仅包含本月与离职用户关联的用户的JSR列表
-    f_relate_leave = open(Dst_Dir + '\\' + 'Current_Month_Leave_JSR.csv', 'w')
+    f_relate_leave = open(Dst_Dir + '\\' + 'Current_Month_Leave_JSR_1.csv', 'w')
     jsr_0_lst = sorted(jsr_lst, key=lambda t:t[1], reverse=True)
     jsr_users = []
     #f_jsr = open(Dst_Dir + '\\' + 'Current_Month_JSR.csv', 'w')
@@ -520,7 +526,7 @@ def Run_Predictor(RL_Feat_Path, Dst_Dir, Risk_Ratio, cert_users, month, month_ls
         # Dst_Dir是当前的月份目录
         # 获取存放上一个月的所有用户JSR文件的目录路径
         add_jsr_dir = os.path.dirname(Dst_Dir) + '\\' + add_month
-        f_add_jsr = open(add_jsr_dir + '\\' + 'Accumulated_Months_JSR.csv', 'r')
+        f_add_jsr = open(add_jsr_dir + '\\' + 'Accumulated_Months_JSR_1.csv', 'r')
         f_add_jsr_lst = f_add_jsr.readlines()
         f_add_jsr.close()
         # 累积更新JSR
@@ -546,7 +552,7 @@ def Run_Predictor(RL_Feat_Path, Dst_Dir, Risk_Ratio, cert_users, month, month_ls
         print i, 'New：', jsr_new_order_lst[i], '\n'
     # sys.exit()
     # 准备写入当前本月的累积JSR
-    f_jsr = open(Dst_Dir + '\\' + 'Accumulated_Months_JSR.csv', 'w')
+    f_jsr = open(Dst_Dir + '\\' + 'Accumulated_Months_JSR_1.csv', 'w')
     # 此时由于，jsr_new_order_lst融合了过去的JSR，因此需要重新排序
     jsr_final_order_lst = sorted(jsr_new_order_lst, key=lambda t:t[1], reverse=True)
     for i in range(len(jsr_final_order_lst)):

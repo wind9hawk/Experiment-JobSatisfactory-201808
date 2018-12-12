@@ -293,14 +293,17 @@ Analyze_Month = []
 for month in os.listdir(Dst_Dir):
     if os.path.isdir(Dst_Dir + '\\' + month) == False:
         continue
+    if '2010-01' not in month:
+        continue
     else:
         month_dir = Dst_Dir + '\\' + month
         if month_dir not in Analyze_Month:
             # 补充的是不含路径的纯'2010-01'
             Analyze_Month.append(month)
             continue
-
+#print Analyze_Month[-2:], '\n'
+#sys.exit()
 # 然后开始提取登录登出特征
-Return_Value = Extract_Early_Late_Feat(Analyze_Month[:], Dst_Dir,Work_Time_Path)
+Return_Value = Extract_Early_Late_Feat(Analyze_Month, Dst_Dir,Work_Time_Path)
 
 print '....<<<<CERT5.2用户迟到早退信息提取处理完毕>>>>....\n\n'

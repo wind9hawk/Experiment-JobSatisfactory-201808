@@ -60,6 +60,8 @@ for file in os.listdir(LDAP_Dir):
 print 'check All_LDAP_Path: \n'
 for i in range(5):
     print i, All_LDAP_Path[i], '\n'
+
+
 #
 # CERT5.2中所有用户的邮件数据
 Email_Rcd_Dir = r'G:\GitHub\Essay-Experiments\CERT5.2-Results\CERT5.2-Users-EmailRecords'
@@ -177,9 +179,11 @@ for i in range(10):
 # 初始化需要的风险阈值比例初始值
 Risk_Ratios = [0.05 for i in range(len(Months_lst))]
 # Month_lst中本身就只包含离职月份
+#Months_lst.insert(0, '2010-01')
 Month_No = 0
-while Month_No < len(Months_lst):
-    print '....<<<<现在开始分析CERT5.2的', month, '月份数据>>>>....\n\n\n'
+while Month_No < 1:#len(Months_lst):
+    print '....<<<<现在开始分析CERT5.2的', Months_lst[Month_No], '月份数据>>>>....\n\n\n'
+    month = Months_lst[Month_No]
     # 执行预测器的月份，为总月份个数-1
     # 核实构建预测器所需要的数据源是否齐备？
     # data-1：原始邮件目录All_Email_Rcds_Path，用于匹配提取该月及以前的邮件通信
@@ -204,9 +208,24 @@ while Month_No < len(Months_lst):
             break
         else:
             continue
-    rl_value_month_path = V07_Predictor_Module.Build_Predictor(sorted(CERT52_Users)[:], f_OCEAN_lst, All_LDAP_Path[0], Email_Rcd_Dir, f_leave_month_lst, Dst_Dir + '\\' + Months_lst[Month_No], Months_lst[Month_No])
+    # 构建当月邮件特征时，不应考虑当月之前已经离职的用户
+    # 当月之前已经离职的用户列表为：Have_Left_Users_Month_lst
+    Have_Left_Users_Month_lst = []
+    for line in f_Leave_Users_lst:
+        # # RMB1821,2010-02-09,LDAP
+        line_lst = line.strip('\n').strip(',').split(',')
+        if len(line_lst) < 2:
+            continue
+        # print line_lst, '\n'
+        if line_lst[1][:7] < month:
+            # 说明该用户已经离职
+            print line_lst[0], line_lst[1], '在 ', month, '前已经离职，不考虑...\n'
+            Have_Left_Users_Month_lst.append(line_lst[0])
+    # 验证通过
+    # sys.exit()
+    rl_value_month_path = V07_Predictor_Module.Build_Predictor(sorted(CERT52_Users)[:], f_OCEAN_lst, All_LDAP_Path[0], Email_Rcd_Dir, f_leave_month_lst, Dst_Dir + '\\' + Months_lst[Month_No], Months_lst[Month_No], Have_Left_Users_Month_lst)
     print Months_lst[Month_No], '..<<Build_Predictor Success>>..\n\n'
-
+    # sys.exit()
     #
     # 在进行预测前，应去除本月离职的用户
     for leavers in f_leave_month_lst:
@@ -217,7 +236,8 @@ while Month_No < len(Months_lst):
             CERT52_Users.remove(l_user[0])
             print Months_lst[Month_No], '预测时去除用户: ', l_user[0], '\n'
             continue
-    # sys.exit()
+    #print 'RMB1821' in CERT52_Users, '\n'
+    #sys.exit()
     # 执行预测模块，生成JS_Risk表
     users_month_jsr_lst, high_risk_lst = V07_Predictor_Module.Run_Predictor(rl_value_month_path, Dst_Dir + '\\' + Months_lst[Month_No], Risk_Ratios[Month_No], sorted(CERT52_Users), Months_lst[Month_No], Months_lst)
     # sys.exit()

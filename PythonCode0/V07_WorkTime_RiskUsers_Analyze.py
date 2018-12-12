@@ -29,7 +29,7 @@ print '....<<<<开始逐月份分析>>>>....\n\n'
 # 检查场景二用户在其中的位置
 
 print '..<<计算每个月份的用户的缺勤程度>>..\n'
-for file in os.listdir(Dst_Dir):
+for file in os.listdir(Dst_Dir)[:-2]:
     file_path = Dst_Dir + '\\' + file
     if os.path.isdir(file_path) == False:
         continue
@@ -39,7 +39,7 @@ for file in os.listdir(Dst_Dir):
         # 月份目录
         for file_0 in os.listdir(file_path):
             # 目标文件：2010-01_early_late_feats.csv
-            if '2010-08_early_late_team_feats.csv' not in file_0:
+            if 'early_late_team_feats.csv' not in file_0:
                 continue
             else:
                 f_early_late = open(file_path + '\\' + file_0, 'r')
@@ -56,9 +56,11 @@ for file in os.listdir(Dst_Dir):
                     if line_lst[0] not in users_month:
                         users_month.append(line_lst[0])
                     tmp_0 = []
+                    if len(line_lst) < 6:
+                        continue
                     print 'line is ', line, '\n'
-                    tmp_0.append(float(line_lst[3]) / float(line_lst[-1]))
-                    tmp_0.append(float(line_lst[4]) / float(line_lst[-1]))
+                    tmp_0.append(float(line_lst[3]) / float(line_lst[5]))
+                    tmp_0.append(float(line_lst[4]) / float(line_lst[5]))
                     el_month.append(tmp_0)
                 print file, '用户出勤情况比例提取完毕...\n'
                 el_month_minmax = skp.MinMaxScaler().fit_transform(el_month)
@@ -68,7 +70,7 @@ for file in os.listdir(Dst_Dir):
                 print '组成该月用户的缺勤指数\n'
                 elv_lst = []
                 i = 0
-                while i < len(users_month):
+                while i < len(el_month):
                     tmp_1 = []
                     tmp_1.append(users_month[i])
                     print el_month_minmax[i][0], el_month_minmax[i][1], '\n'

@@ -47,7 +47,7 @@ def Cal_EmailRatio(X, Y):
 
 
 # 见原先的邮件特征模块变成函数调用
-def Extract_Email_Feat(user_id, leave_users_month, emails_path, dst_dir, month):
+def Extract_Email_Feat(user_id, leave_users_month, emails_path, dst_dir, month, have_left_users_month_lst):
 
     # 提取的邮件特征为截止到当前月month的邮件通信
 
@@ -55,6 +55,7 @@ def Extract_Email_Feat(user_id, leave_users_month, emails_path, dst_dir, month):
 
     #print '..<<指定原始邮件数据源>>..\n\n'
     # 存放原始的用户邮件通讯记录
+    # 该数据源包含全部CERT5.2用户，没有根据离职进行更新
     Email_Dir = r'G:\GitHub\Essay-Experiments\CERT5.2-Results\CERT5.2-Users-EmailRecords'
     # 存放我们提取特征的目录，就在程序目录下
     Email_Feats_Dir = dst_dir + '\\' + 'CERT5.2_Users_EmailFeats-0.7'
@@ -89,6 +90,7 @@ def Extract_Email_Feat(user_id, leave_users_month, emails_path, dst_dir, month):
             #print target_user, user_id, '\n'
             # sys.exit()
             continue
+            #sys.exit()
         #if target_user not in leave_users_month:
         #    print target_user, '当月未离职，跳过...\n'
         #    continue
@@ -471,11 +473,20 @@ def Extract_Email_Feat(user_id, leave_users_month, emails_path, dst_dir, month):
             for ele in line:
                 f_0.write(str(ele))
                 f_0.write(',')
-            line.append(len(line[3].split(';')))
-            f_0.write(str(len(line[3].split(';'))))
+            if len(line[3].strip('[').strip(']')) == 0:
+                line.append('0')
+            else:
+                line.append(len(line[3].strip('[').strip(']').split(';')))
+            # 注意！
+            # len([].split(';'))的结果永远为1！
+            # 因此需要事先判断是否为空！
+            f_0.write(str(line[-1]))
             f_0.write(',')
-            line.append(len(line[7].split(';')))
-            f_0.write(str(len(line[7].split(';'))))
+            if len(line[7].strip('[').strip(']')) == 0:
+                line.append('0')
+            else:
+                line.append(len(line[7].strip('[').strip(']').split(';')))
+            f_0.write(str(line[-1]))
             f_0.write('\n')
         f_0.close()
         print '写入的邮件特征文件为： user_id is ',user_id, '\n'
