@@ -249,7 +249,7 @@ class JS_SVM_Predictor():
         self.Leave_Users = [] # CERT5.2中离职用户
         self.Leave_Users_Time = [] # 对应于离职用户的离职时间，具体到了天
         self.Month_lst = []
-        f_leave_months = open(dst_dir + '\\' + 'CERT5.2-Leave-Users_OnDays_0.6.csv', 'r')
+        f_leave_months = open(dst_dir + '\\' + 'CERT5.2-LaidOff-Users_OnDays_0.6.csv', 'r')
         f_lm_lst = f_leave_months.readlines()
         f_leave_months.close()
         for line in f_lm_lst:
@@ -360,7 +360,7 @@ class JS_SVM_Predictor():
         for i in range(5):
             print i, self.Train_LED_Feats[i], '\n'
         # 重新写入：
-        f_Train_LED = open(self.Train_Dir + '\\' + 'CERT5.2_Train_LED_OnTeam_v01.csv', 'w')
+        f_Train_LED = open(self.Train_Dir + '\\' + 'CERT5.2_Train_LaidOff_LED_OnTeam_v01.csv', 'w')
         for feat in self.Train_LED_Feats:
             for ele in feat:
                 f_Train_LED.write(str(ele))
