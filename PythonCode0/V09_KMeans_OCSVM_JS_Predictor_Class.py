@@ -14,6 +14,7 @@ import sklearn.preprocessing as skp
 import sklearn.decomposition as skd
 import copy
 import numpy as np
+import math
 
 import V09_KMeans_Module
 # import V09_KMeans_OCSVM_CLF_01
@@ -62,6 +63,67 @@ def Cal_Messures(gt_lables, y_pred):
     # cnt_n: 真实数据中N的个数
     return recall, recall / cnt_p, cnt_fp, fpr / 1899.0, cnt_c_p / 1999, tp_index, recall_index, fp_index
 
+def Cal_Center_CPB(center):
+    # CPB-I,CPB-O,
+    # JS_Score,
+    # Team_CPB-I-mean,Team_CPB-O-mean,Users-less-mean-A,Users-less-mean-A and C,Users-less-mean-C,Users-High-mean-N,Team_CPB-I-median,Team_CPB-O-median,leader-CPB-I,leader-CPB-O,
+    # dis_ocean,avg_dis_ocean,dis_os,avg_dis_os,email_ratio,cnt_send/recv,cnt_s/r_size,cnt_s/r_attach,cnt_s/r_days,cnt_email_days,
+    # cnt_late_days,cnt_early_days,month_work_days,
+    # early_ratio, late_ratio
+    print '要计算CPB的center is ', center, '\n'
+    cpb_score = center[0] + center[1]
+    js_score = center[2]
+    # 3:12  [3:13]
+    team_cpb_score = np.sum(center[3:13])
+    # 13:26  [13:27]
+    lce_cpb_score = np.sum(center[13:27])
+    led_cpb_score = np.sum(center[30:32])
+    led_cpb_score = np.sum(center[30:32])
+    #user_cpb = led_cpb_score
+    user_cpb = (cpb_score + math.log(math.e - js_score + team_cpb_score + lce_cpb_score, math.e)) * math.log(led_cpb_score, math.e)
+    return user_cpb
+
+def Cal_Cluster_CPB(kmeans_atf_lst, kmeans_led_lst, kmeans_cluster_minmax):
+    # 用户自身的CPB倾向分数
+    # 用户自身的JS + 用户工作环境CPB影响 + 用户离职用户联系影响
+    # 用户的缺勤表现
+    # 使用群簇的中心计算
+    cluster_centers = []
+    for cls in kmeans_cluster_minmax:
+        center_mean = np.mean(cls, axis=0)
+        center_median = np.median(cls, axis=0)
+        cls_center = []
+        cls_center.append(center_mean)
+        cls_center.append(center_median)
+        cluster_centers.append(cls_center)
+    print 'KMeans群簇中心均值、中位数计算完毕:\n'
+    for centers in cluster_centers:
+        print 'cls mean:', centers[0], 'cls median:', centers[1], '\n'
+    # sys.exit() 2个验证通过
+    # 开始计算，最后的[-2]与[-1]是两个缺勤比例
+    cls_no = 0
+    cluster_centers_cpbs = []
+    print 'Bug for cluster_centers: ', len(cluster_centers), cluster_centers, '\n'
+    # sys.exit()
+    cluster_cpbs = []
+    for centers in cluster_centers:
+        if cls_no > 1:
+            break
+        print '计算群簇编号：', cls_no, '\n'
+        print 'centers is ', centers[0], '\n', centers[1], '\n'
+        center_tmp = []
+        center_tmp.append(Cal_Center_CPB(centers[0]))
+        # sys.exit()
+        center_tmp.append(Cal_Center_CPB(centers[1]))
+        cluster_cpbs.append(center_tmp)
+        cls_no += 1
+    print '计算后的中心CPB数值为：\n'
+    i = 0
+    while i < len(kmeans_cluster_minmax):
+        print i, cluster_cpbs[i], '\n'
+        i += 1
+    return cluster_centers
+
 
 class KMeans_OCSVM_Predictor():
     def __init__(self, dst_dir):
@@ -84,7 +146,7 @@ class KMeans_OCSVM_Predictor():
                 js_tmp.append(float(ele))
             self.JS_lst.append(js_tmp)
         print 'JS_lst 初始化完毕..\n'
-        f_ATF = open(self.Analyze_Path + '\\' + 'CERT5.2_Static_ATF-0.1.csv', 'r')
+        f_ATF = open(self.Analyze_Path + '\\' + 'CERT5.2_Static_CPB_ATF-0.1.csv', 'r')
         f_ATF_lst = f_ATF.readlines()
         self.ATF_lst = []
         self.CERT52_Users_ATFOrder = []
@@ -195,7 +257,7 @@ class KMeans_OCSVM_Predictor():
         # 这里都是默认聚成了两个群簇..
         # 试着将KMeans聚类的结果保存，以用于重新组成OCSVM的训练集与测试集
         # 先保存JS的聚类结果
-        f_kmeans_pred = open(self.Analyze_Path + '\\' + 'ATF_KMeans_Pred.csv', 'w')
+        f_kmeans_pred = open(self.Analyze_Path + '\\' + 'CPB_ATF_KMeans_Pred.csv', 'w')
         self.KMeans_Clusters = [[] for i in range(self.K)] # 继续保存用户索引
         j = 0
         while j < len(self.KMeans_Index_ATF):
@@ -209,6 +271,42 @@ class KMeans_OCSVM_Predictor():
         print 'JS/ATF各个KMeans群簇用户数量：\n'
         for i in range(self.K):
             print i, len(self.KMeans_Clusters[i]), '\n'
+
+        ##
+        ##
+        # 插入一个计算群簇中心值的CPB倾向的计算公式
+        # 依据self.KMeans_Clusters中的索引数据，构建对应的群簇Feats
+        # 提取KMeans部分用户最后的LED特征，转换成迟到比例与早退比例
+        KMeans_LED_Ratios = []
+        for line in self.KMeans_ATF_Feats:
+            led_tmp = []
+            led_tmp.append(float(line[-3]) / float(line[-1]))
+            led_tmp.append(float(line[-2]) / float(line[-1]))
+            KMeans_LED_Ratios.append(led_tmp)
+        KMeans_ATF_MinMax_lst = copy.copy(self.KMeans_ATF_Feats)
+        i = 0
+        while i < len(KMeans_ATF_MinMax_lst):
+            KMeans_ATF_MinMax_lst[i].extend(KMeans_LED_Ratios[i])
+            i += 1
+        KMeans_ATF_MinMax_lst = skp.MinMaxScaler().fit_transform(KMeans_ATF_MinMax_lst)
+        KMeans_Cluster_MinMax = [[] for i in range(self.K)]
+        k = 0
+        while k < self.K:
+            for index_0 in self.KMeans_Clusters[k]:
+                KMeans_Cluster_MinMax[k].append(KMeans_ATF_MinMax_lst[index_0])
+            k += 1
+        for i in range(self.K):
+            print i, len(KMeans_Cluster_MinMax[i]), '\n'
+        #print KMeans_Cluster_MinMax[0][1], '\n'
+        #print '1 Cluster: ', KMeans_Cluster_MinMax[1][:10], '\n'
+        # 基于KMeans_Cluster_MinMax + KMeans_LED_Ratios计算群簇的CPB公式
+
+        cluster_centers = Cal_Cluster_CPB(self.KMeans_ATF_Feats, KMeans_LED_Ratios, KMeans_Cluster_MinMax)
+
+        sys.exit()
+
+
+
 
 
         print '自动KMeans聚类完成..\n'
@@ -373,7 +471,7 @@ class KMeans_OCSVM_Predictor():
             self.Risk_Users.append(risk_tmp)
             j += 1
         self.Risk_Users_Sort = sorted(self.Risk_Users, key=lambda t:t[-1], reverse=True)
-        f_Risk_DF = open(self.Analyze_Path + '\\' + 'CERT5.2_KMeans_OCSVM_ATF_Predictor_Risk-0.11.csv', 'w')
+        f_Risk_DF = open(self.Analyze_Path + '\\' + 'CERT5.2_KMeans_OCSVM_CPB_ATF_Predictor_Risk-0.1.csv', 'w')
         for line in self.Risk_Users_Sort:
             for ele in line:
                 f_Risk_DF.write(str(ele) + ',')
