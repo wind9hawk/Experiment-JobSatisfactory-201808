@@ -78,9 +78,9 @@ def Cal_Center_CPB(center):
     # 13:26  [13:27]
     lce_cpb_score = np.sum(center[13:27])
     led_cpb_score = np.sum(center[30:32])
-    led_cpb_score = np.sum(center[30:32])
+    #led_cpb_score = np.sum(center[30:32])
     #user_cpb = led_cpb_score
-    user_cpb = (cpb_score + math.log(math.e - js_score + team_cpb_score + lce_cpb_score, math.e)) * math.log(led_cpb_score, math.e)
+    user_cpb = cpb_score + math.log(math.e - js_score + team_cpb_score + lce_cpb_score, math.e) + led_cpb_score
     return user_cpb
 
 def Cal_Cluster_CPB(kmeans_atf_lst, kmeans_led_lst, kmeans_cluster_minmax):
@@ -146,10 +146,11 @@ class KMeans_OCSVM_Predictor():
                 js_tmp.append(float(ele))
             self.JS_lst.append(js_tmp)
         print 'JS_lst 初始化完毕..\n'
-        f_ATF = open(self.Analyze_Path + '\\' + 'CERT5.2_Static_CPB_ATF-0.1.csv', 'r')
+        f_ATF = open(self.Analyze_Path + '\\' + 'CERT5.2_Leave_Static_CPB_ATF-02.csv', 'r')
         f_ATF_lst = f_ATF.readlines()
         self.ATF_lst = []
         self.CERT52_Users_ATFOrder = []
+        self.Length_ATF_Feat = 0
         for line_atf in f_ATF_lst:
             line_lst = line_atf.strip('\n').strip(',').split(',')
             if line_lst[0] == 'user_id':
@@ -160,7 +161,16 @@ class KMeans_OCSVM_Predictor():
             for ele in line_lst[1:]:
                 atf_tmp.append(float(ele))
             self.ATF_lst.append(atf_tmp)
+            if self.Length_ATF_Feat == 0:
+                self.Length_ATF_Feat = len(line_lst[1:])
+            else:
+                if len(line_lst[1:]) > self.Length_ATF_Feat:
+                    print 'Abnormal Length of ATF Feat: ', len(line_lst[1:]), line_lst[0], line_lst[1:], '\n'
+        # 首先对所有ATF特征MinMax化
+        self.ATF_lst = skp.MinMaxScaler().fit_transform(self.ATF_lst)
         print 'ATF_lst 初始化完毕..\n'
+        # sys.exit()
+        # 所有初始ATF特征均标准
         # 初始化Leave Users
         self.Leave_Users = []
         f_leave = open(self.Dst_Dir + '\\' + 'CERT5.2-Leave-Users_OnDays_0.6.csv', 'r')
@@ -283,11 +293,15 @@ class KMeans_OCSVM_Predictor():
             led_tmp.append(float(line[-3]) / float(line[-1]))
             led_tmp.append(float(line[-2]) / float(line[-1]))
             KMeans_LED_Ratios.append(led_tmp)
+        # 被选择KMeans的用户追加了缺勤率，而未参加KMeans的用户却没有，因此需要最后训练OCSVM时不需要缺勤率，去掉即可
+        # 即若长度=30跳过，若=32去掉最后两个即可
         KMeans_ATF_MinMax_lst = copy.copy(self.KMeans_ATF_Feats)
         i = 0
         while i < len(KMeans_ATF_MinMax_lst):
-            KMeans_ATF_MinMax_lst[i].extend(KMeans_LED_Ratios[i])
+            list(KMeans_ATF_MinMax_lst[i]).extend(KMeans_LED_Ratios[i])
+            print 'KMeans_ATF_MinMax_lst', ':', i, 'is ', KMeans_ATF_MinMax_lst[i], '\n'
             i += 1
+        #sys.exit()
         KMeans_ATF_MinMax_lst = skp.MinMaxScaler().fit_transform(KMeans_ATF_MinMax_lst)
         KMeans_Cluster_MinMax = [[] for i in range(self.K)]
         k = 0
@@ -300,11 +314,9 @@ class KMeans_OCSVM_Predictor():
         #print KMeans_Cluster_MinMax[0][1], '\n'
         #print '1 Cluster: ', KMeans_Cluster_MinMax[1][:10], '\n'
         # 基于KMeans_Cluster_MinMax + KMeans_LED_Ratios计算群簇的CPB公式
-
+        # KMeans_Cluster_MinMax添加了Late_Ratio与Early_Ratio后归一化的结果
         cluster_centers = Cal_Cluster_CPB(self.KMeans_ATF_Feats, KMeans_LED_Ratios, KMeans_Cluster_MinMax)
-
-        sys.exit()
-
+        # sys.exit()
 
 
 
@@ -331,9 +343,23 @@ class KMeans_OCSVM_Predictor():
         print '选择用于训练的群簇标号为: ', t_cls_index, max_cls, '\n'
 
         # 在分隔训练集与测试集前先做PCA
-        self.ATF_PCA_lst = skd.PCA(n_components=1).fit_transform(self.ATF_lst)
+        ATF_Lengths = []
+        for line in self.ATF_lst[:10]:
+            ATF_Lengths.append(len(line))
+            print len(line), line, '\n'
+        for line in self.ATF_lst:
+            if len(line) > 30:
+                line.remove(line[-1])
+                line.remove(line[-1])
+            else:
+                continue
+        print 'set of self.ATF_lst Lengths:', set(ATF_Lengths), '\n'
+        self.ATF_PCA_lst = skd.PCA().fit_transform(self.ATF_lst)
+        print 'PCA dimension is ', len(self.ATF_PCA_lst[0]), '\n'
+        sys.exit()
         # scale
-        self.ATF_PCA_Scale_lst = skp.scale(self.ATF_PCA_lst)
+        # self.ATF_PCA_Scale_lst = skp.scale(self.ATF_PCA_lst)
+        self.ATF_PCA_Scale_lst = copy.copy(self.ATF_PCA_lst)
 
         self.Train_Feats = []
         for index_t in self.KMeans_Clusters[t_cls_index]:
@@ -403,7 +429,7 @@ class KMeans_OCSVM_Predictor():
         # nu； [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0]
         ocsvm_obj_lst = []
         for nu_0 in nu_lst:
-            nu_0 = nu_0 / 100.0
+            nu_0 = nu_0 / 10000.0
             clf = svm.OneClassSVM(kernel='rbf', tol=0.01, nu=nu_0, gamma='auto', random_state=10)
             clf.fit(self.Train_Feats)
             pred = clf.predict(self.Test_Feats)
@@ -512,7 +538,7 @@ class KMeans_OCSVM_Predictor():
 
 
 
-print '..<<基于原始26维度JS特征的CERT5.2静态高危用户预测实验>>..\n\n'
+print '..<<基于原始29维度JS特征的CERT5.2静态高危用户预测实验>>..\n\n'
 Dst_Dir = sys.path[0] + '\\' + 'JS-Risks_Analyze-0.9'
 # 初始化对象
 Predictor_obj = KMeans_OCSVM_Predictor(Dst_Dir)

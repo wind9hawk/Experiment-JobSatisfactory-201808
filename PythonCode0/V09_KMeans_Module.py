@@ -161,7 +161,8 @@ def Auto_K_Choice(JS_lst, K_range):
         #JS_lst = MinMaxScaler().fit_transform(JS_lst)
         #print 'PCA降维完成...\n'
         print '..<<在进行KMeans分析前首先进行归一化MinMax>>..\n\n'
-        JS_lst_minmax = MinMaxScaler().fit_transform(JS_lst)
+        #JS_lst_minmax = MinMaxScaler().fit_transform(JS_lst)
+        JS_lst_minmax = copy.copy(JS_lst)
         #JS_lst = scale(JS_lst)
         #JS_lst = skd.PCA().fit_transform(JS_lst)
         SC_tmp = [] # 保存本次K值的三次实验结果，K值与对应的轮廓系数

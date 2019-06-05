@@ -35,7 +35,7 @@ Months_lst.sort()
 print '需要分析的目录为：', Months_lst, '\n'
 
 # 针对每一个月提取当月的JS_Feats特征
-Extract_JSF_Flag = False
+Extract_JSF_Flag = True
 if Extract_JSF_Flag:
     for month in Months_lst[:]:
         jsp_1 = JSP01.JS_Feats(Dst_Dir, month, Months_lst)
@@ -46,11 +46,11 @@ print '....<<<<第二阶段：确定训练集与测试集范围，并以此训�
 # 开始构建训练集与测试集，并建立SVM Predictor
 # 定义训练器对象
 # 2010-01:2010-04训练，2010-05验证；2010-06:2011-05测试
-Train_Obj = JSP01.JS_SVM_Predictor(Dst_Dir, Months_lst[:5], Months_lst[5:])
+#Train_Obj = JSP01.JS_SVM_Predictor(Dst_Dir, Months_lst[:5], Months_lst[5:])
 # 初始化训练JS_Feats与对应的训练集用户标签；
-Train_Obj.Build_TrainSet()
-Train_Obj.Build_ValidateSet()
-Train_Obj.Train_SVM_Predictor()
+#Train_Obj.Build_TrainSet()
+#Train_Obj.Build_ValidateSet()
+#Train_Obj.Train_SVM_Predictor()
 
 # 上述通过
 

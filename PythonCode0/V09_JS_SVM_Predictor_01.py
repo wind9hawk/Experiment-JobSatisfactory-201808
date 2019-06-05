@@ -159,27 +159,32 @@ def Get_User_LC_Feat(user_id, lc_lst, month):
             i += 1
             continue
     user_lc_feat.append(user_id)
+    if len(user_lcontacts) == 0:
+        cnt_lc = 1
+    else:
+        cnt_lc = len(user_lcontacts)
     X = len(user_send_days)
     Y = len(user_recv_days)
     if X + Y > 0:
         user_lc_feat.append(float(X - Y) / (X + Y))
     else:
         user_lc_feat.append(0.0)
-    user_lc_feat.append(user_cnt_send)
-    user_lc_feat.append(user_cnt_recv)
-    user_lc_feat.append(user_send_size)
-    user_lc_feat.append(user_recv_size)
-    user_lc_feat.append(user_send_attach)
-    user_lc_feat.append(user_recv_attach)
-    user_lc_feat.append(float(len(user_send_days)))
-    user_lc_feat.append(float(len(user_recv_days)))
+    user_lc_feat.append(user_cnt_send / cnt_lc)
+    user_lc_feat.append(user_cnt_recv / cnt_lc)
+    user_lc_feat.append(user_send_size / cnt_lc)
+    user_lc_feat.append(user_recv_size / cnt_lc)
+    user_lc_feat.append(user_send_attach / cnt_lc)
+    user_lc_feat.append(user_recv_attach / cnt_lc)
+    user_lc_feat.append(float(len(user_send_days)) / cnt_lc)
+    user_lc_feat.append(float(len(user_recv_days)) / cnt_lc)
     user_send_days.extend(user_recv_days)
     # [].extend()没有返回值，直接修改原列表
     #同理，对于直接修改原对象的方法而言，[].append()也没有返回值
     user_email_days = set(user_send_days)
-    user_lc_feat.append(float(len(user_email_days)))
+    user_lc_feat.append(float(len(user_email_days)) / cnt_lc)
     print user_id, 'email_feat提取完毕...\n'
     return user_lcontacts, user_lc_feat # 12-format: user_id, email_ratio, cnt_send/recv, cnt_s/r_size, cnt_s/r_attach, cnt_s/r_days, cnt_email_days
+
 
 def Cal_Distance_OCEAN(user_a_ocean, user_b_ocean):
     distance_a_b = 0.0
@@ -189,6 +194,7 @@ def Cal_Distance_OCEAN(user_a_ocean, user_b_ocean):
         i += 1
     # dis_ocean = 1 / log(dis_ocean)
     distance_a_b = math.pow(math.log(math.e + math.pow(distance_a_b, 0.5), math.e), -1)
+    #distance_a_b = math.pow(distance_a_b, 0.5) # 将OCEAN看作五维度向量，计算你彼此间欧式距离
     return distance_a_b
 
 def Cal_Distance_LDAP(user_a_ldap, user_b_ldap):
@@ -202,6 +208,7 @@ def Cal_Distance_LDAP(user_a_ldap, user_b_ldap):
             distance_a_b += 0
             i += 1
     distance_a_b = math.pow(math.log(math.e + distance_a_b, math.e), -1)
+    # 直接返回异或代表的二进制值
     return distance_a_b
 
 
@@ -238,9 +245,9 @@ def Cal_OS_Feat(user_a, user_lcontacts, f_ldap_lst):
         dis_ladp = Cal_Distance_LDAP(user_a_ldap, lc_ldap)
         distance_ldap += dis_ladp
     if len(user_lcontacts) == 0:
-        return dis_ladp, 0.0
+        return distance_ldap, 0.0
     else:
-        return dis_ladp, dis_ladp / len(user_lcontacts)
+        return distance_ldap, distance_ldap / len(user_lcontacts)
 
 def Cal_Month_LED(user, f_led_lst):
     user_led = []
@@ -386,7 +393,7 @@ class JS_Feats():
                  #   print i, 'LED_Feats:', self.LED_Feats[i], '\n'
             else:
                 break
-        f_Train_LED_w = open(self.Dst_Dir + '\\' + self.Month + '\\' + self.Month + '_CERT5.2_LED_Feats.csv', 'w')
+        f_Train_LED_w = open(self.Dst_Dir + '\\' + self.Month + '\\' + self.Month + '_CERT5.2_Leave_LED_Feats-0.2.csv', 'w')
         for line in self.LED_Feats:
             for ele in line:
                 f_Train_LED_w.write(str(ele))
@@ -428,7 +435,7 @@ class JS_Feats():
                 tmp_gt.append(user)
                 tmp_gt.append(-1)
                 self.Month_Users_GT.append(tmp_gt)
-        f_Month_Users_GT = open(self.Dst_Dir + '\\' + self.Month + '\\' + self.Month + '_CERT5.2_Users_GroundTruth.csv_v01.csv', 'w')
+        f_Month_Users_GT = open(self.Dst_Dir + '\\' + self.Month + '\\' + self.Month + '_CERT5.2_Users_GroundTruth.csv_v02.csv', 'w')
         for user_gt in self.Month_Users_GT:
             if user_gt[0] not in self.Month_Crt_Users:
                 continue # 如此，得到的GroundTruth与当月JS_Feats中只包含当月还在职的用户
@@ -473,7 +480,7 @@ class JS_Feats():
                 CERT52_Users_Month_JS_Feats.append(user_js_feat)
                 print user, 'Until ', self.Month, 'js feat is like: ', user_js_feat, '\n\n'
         # 特征写入
-        f_Train_JS_Feats = open(self.Dst_Dir + '\\' + self.Month + '\\' + 'CERT5.2_Month_JS_Feats_v01.csv', 'w')
+        f_Train_JS_Feats = open(self.Dst_Dir + '\\' + self.Month + '\\' + 'CERT5.2_Month_AvgLC_Leave_JS_Feats_v02.csv', 'w')
         f_Train_JS_Feats.write('user_id, o, c, e, a, n, cpb-i, cpb-o, dis_ocean, avg_dis_ocean, dis_os, avg_dis_os, cnt_late_days, cnt_early_days, month_work_days, email_ratio, cnt_send/recv, cnt_s/r_size, cnt_s/r_attach, cnt_s/r_days, cnt_email_days\n')
         for line in CERT52_Users_Month_JS_Feats:
             for ele in line:

@@ -86,7 +86,7 @@ for file in os.listdir(Email_Dir)[:]:
     send_feat = []
     recv_feat = []
 
-    # 邮件数据样例
+    # CERT5.2邮件数据样例
     # like: 01/02/2010 11:00:02,AAB1302,PC-5565,Ruby.Blair.Alexander@dtaa.com,,,Allen.Ashton.Buckley@dtaa.com,Send,23014,
     # # 当前数据格式：date,user,pc,to,cc,bcc,from,activity,size,attachments
     # 需要判断attachments是否存在，会影响后续位置

@@ -12,7 +12,7 @@
 # 3. 用户OCEAN决定的JS分数
 # 4. Team的CPB影响(8个)
 # 5. Supervisor的CPB影响（2个）
-# 6. LeaveContacts的邮件通讯特征（9个）
+# 6. LeaveContacts的邮件通讯特征（14个）
 # 7. 用户缺勤特征（3个）
 
 # 面向过程模块
@@ -59,10 +59,10 @@ for line_cpb in f_CPBs_lst:
     print line_lst[0], 'new 26JS feat is ', cpb_tmp, '\n'
 print '..<<开始逐个月份检查、生成ATF>>..\n'
 for file in os.listdir(Dst_Dir):
-    if os.path.isdir(Dst_Dir + '\\' + file) == True and 'Dir' not in file:
+    if os.path.isdir(Dst_Dir + '\\' + file) == True and 'Dir' not in file and 'KMeans' not in file:
         month_path = Dst_Dir + '\\' + file
         # 在该目录下找这个文件CERT5.2_Month_AvgLC_JS_Feats_v01.csv
-        lce_feat_path = month_path + '\\' + 'CERT5.2_Month_AvgLC_LaidOff_JS_Feats_v01.csv'
+        lce_feat_path = month_path + '\\' + 'CERT5.2_Month_AvgLC_Leave_JS_Feats_v02.csv'
         if os.path.exists(lce_feat_path) == False:
             print file, '不存在Leave Contacts特征，跳过..\n'
             continue
@@ -106,7 +106,7 @@ for file in os.listdir(Dst_Dir):
                     print lce_feats[i], 'Lost CPBs but with LCE..\n'
                     i += 1
                     continue
-            f_atf_path = month_path + '\\' + 'CERT5.2_LaidOff_ATF_0.1.csv'
+            f_atf_path = month_path + '\\' + 'CERT5.2_Leave_ATF_02.csv'
             f_atf = open(f_atf_path, 'w')
             f_atf.write('user_id' + ',')
             # 首先写入标签

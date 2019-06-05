@@ -38,6 +38,7 @@ from sklearn.decomposition import PCA
 import numpy as np
 import sklearn.metrics as skm
 import sklearn.decomposition as skd
+import copy
 
 # 计算两个点的欧式距离
 def Distance(Pa, Pb):
@@ -197,11 +198,12 @@ def Auto_K_Choice(JS_lst, K_range):
     print '其中轮廓系数最高的K值为: \n'
     SC_value = 0.0
     K_best = 0
+    Y_Pred_0 = []
     for line in SC_lst:
         if line[1] > SC_value:
             SC_value = line[1]
             K_best = line[0]
-            Y_Pred_0 = line[2]
+            Y_Pred_0 = copy.copy(line[2])
     print '..<<最优的K值与对应的轮廓系数为： ',K_best, SC_value, '>>..\n\n'
     return K_best, SC_value, Y_Pred_0
 
